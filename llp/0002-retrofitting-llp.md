@@ -77,7 +77,9 @@ This is faster than writing from scratch and catches more than either human or a
 
 ## 5. Annotate code with @ref references
 
-Once LLP documents exist with numbered sections, annotate the code that implements them. This is the step that closes the loop — without references, the documents are just prose sitting in a directory.
+Once LLP documents exist with stable section targets, annotate the code that implements them. This is the step that closes the loop — without references, the documents are just prose sitting in a directory.
+
+Those section targets can be either numbered sections or heading slugs. Use whichever fits the document best.
 
 ### Annotation strategy
 
@@ -126,7 +128,7 @@ Review agent-proposed annotations for accuracy. The agent may misidentify which 
 
 If the project has existing design documents, ADRs, RFCs, or wiki pages:
 
-- **Convert valuable ones to LLPs.** Assign them numbers, add the standard metadata header, and add section numbering. The content may need updating to reflect current state — remember, LLP documents represent current thinking, not historical record.
+- **Convert valuable ones to LLPs.** Assign them numbers, add the standard metadata header, and ensure they have stable section targets, either numbered sections or heading slugs. The content may need updating to reflect current state — active LLPs represent current thinking; historical context should be marked explicitly with statuses like `Superseded` or `Tombstoned`.
 - **Delete or archive stale ones.** A design doc from 2019 that no longer matches the code is harmful. Either update it to reflect reality or remove it. Git has the history if anyone needs the original.
 - **Link, don't duplicate.** If an external document (a spec, a vendor doc) is authoritative, reference it with `@ref path/to/doc.md#section` rather than copying its content into an LLP.
 
@@ -171,4 +173,4 @@ For large codebases, adopt LLP incrementally rather than all at once:
 - **Agent-generated documents without human review.** Agents are good at describing what code does but unreliable at inferring why. Every agent-drafted LLP needs a human pass for rationale accuracy.
 - **Over-annotating stable, obvious code.** A utility function that sorts a list doesn't need an LLP reference. Focus annotation effort on code where the design rationale is genuinely non-obvious.
 - **Delaying annotation until "the docs are done."** Module-level references provide value immediately, even before the LLP documents are complete. Start linking early.
-- **Trying to document the entire history.** LLP documents represent current thinking. You don't need to reconstruct and document every historical decision — only the ones that still affect the code today.
+- **Trying to document the entire history.** Active LLPs represent current thinking. You don't need to reconstruct and document every historical decision — only the ones that still affect the code today. Preserve older context only when it is still useful, and mark it explicitly.

@@ -74,7 +74,7 @@ Common mistakes when setting up LLP in a new project:
 - **Writing too many documents before there's code.** Documents without implementing code are speculation. Write just enough to capture decisions you've actually made, then grow the corpus alongside the codebase.
 - **Annotating everything.** Early code is volatile. References to code that's about to be rewritten create maintenance drag. Wait until a module's design stabilizes before annotating heavily.
 - **Elaborate directory structures.** Start flat. Add subdirectories when you actually have 10+ documents and the flat list is hard to scan.
-- **Perfect prose.** A rough LLP with numbered sections that an agent can reference is more valuable than a polished document that never gets written. You can always improve it later — they're living documents.
+- **Perfect prose.** A rough LLP with stable section targets that an agent can reference is more valuable than a polished document that never gets written. You can always improve it later — they're living documents.
 
 ## 7. Suggested first documents
 
@@ -82,7 +82,7 @@ A typical new project benefits from 3-5 initial LLPs:
 
 1. **LLP 0000** (usually Explainer, sometimes RFC) — Root overview and entry point
 2. **LLP 0001** (Principle or RFC) — Core design philosophy or key technical choice
-3. **LLP 0002+** (RFC) — Individual design decisions as they arise
+3. **LLP 0002+** (RFC or Research) — Individual design decisions or findings as they arise
 
 The numbering will grow organically. Don't plan the numbering scheme — just take the next number.
 

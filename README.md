@@ -21,9 +21,9 @@ The `@ref` comment is a machine-readable pointer to a specific section of an LLP
 
 LLP documents are numbered markdown files (`0000-slug.md`, `0001-slug.md`, ...) that capture the thinking behind a software system — the rationale, plans, constraints, and decisions that aren't encoded directly in code. They are:
 
-- **Living documents.** They should be kept up to date as the system evolves, or deleted when no longer relevant. Git provides the history; the document always represents current thinking.
+- **Living documents.** Active LLPs should be kept up to date as the system evolves. Historical-but-useful LLPs can be moved to `llp/tombstones/` and marked `Tombstoned`; otherwise delete them. Git provides the history.
 - **For humans and agents.** Both can read, write, and modify LLP documents. They serve as shared context between human and AI collaborators.
-- **One unified system.** Proposals, plans, explainers, specs, guides, decision records — all are LLP documents, classified by metadata rather than scattered across directories.
+- **One unified system.** Proposals, plans, explainers, research findings, specs, guides, decision records — all are LLP documents, classified by metadata rather than scattered across directories.
 
 ### Numbering
 
@@ -75,7 +75,7 @@ You don't need to annotate everything at once:
 
 ## Starting a new project with LLP
 
-1. **Write LLP documents alongside code.** Even lightweight docs with numbered sections provide valuable reference targets.
+1. **Write LLP documents alongside code.** Even lightweight docs with stable section targets provide valuable reference targets.
 2. **Reference as you go.** When implementing a design decision, add the `@ref` immediately — this is when the connection is freshest.
 3. **Keep references specific.** `@ref LLP 0005#3.2` is useful. `@ref LLP 0005` without a section is less so.
 
@@ -95,7 +95,7 @@ LLP documents use a markdown metadata header directly below the title. LLP does 
 | LLP reference | `@ref LLP NNNN#S — gloss` | `@ref LLP 0005#3.1 — Why we batch writes` |
 | LLP (broad) | `@ref LLP NNNN` | `@ref LLP 0012 — Auth subsystem` |
 | Path reference | `@ref path/to/doc.md#S` | `@ref docs/vendor/spec.md#4 — Token format` |
-| Doc bridge | `@doc path#S — gloss` | `@doc guides/auth.md#tokens — Public token docs` |
+| User-facing doc | `@ref path/to/doc.md#S` | `@ref guides/auth.md#tokens — Public token docs` |
 
 ## Prior art
 

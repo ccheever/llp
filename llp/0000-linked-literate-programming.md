@@ -51,9 +51,9 @@ LLP documents are the prose side of a software system — they capture the think
 
 #### Living documents
 
-LLP documents are **living documents**, not immutable records. They should be kept up to date as the system evolves, or deleted when no longer relevant. Git provides the history — the document itself always represents current thinking.
+LLP documents are **living documents**, not immutable records. Active LLPs should be kept up to date as the system evolves. When an LLP is no longer current but still worth preserving for migration or historical context, mark it `Superseded` or `Tombstoned` as appropriate. When it is no longer worth keeping in the tree, delete it. Git provides the history.
 
-This is a deliberate departure from systems like ADRs where documents are append-only. A stale design document that no longer matches the code is actively harmful — it misleads agents and humans alike. Better to update it or delete it.
+This is a deliberate departure from systems like ADRs where documents are append-only. A stale design document that no longer matches the code is actively harmful — it misleads agents and humans alike. Historical context can still be preserved, but it should be explicit via metadata and location rather than lingering as silently stale guidance.
 
 #### For humans and agents
 
@@ -79,9 +79,13 @@ llps/
   auth/
     0017-session-management.md
     0042-token-rotation.md
+  tombstones/
+    0009-legacy-sync-design.md
 ```
 
 Directories are not numbered — they're just organizational buckets. The LLP number is the identity; the directory is just storage. `@ref LLP 0003#2.1` doesn't encode the directory path, so documents can be reorganized freely without breaking references.
+
+`tombstones/` is a reserved bucket for LLPs that are no longer part of current guidance but are still worth keeping around for historical or migration context. Tombstoned LLPs remain referenceable by number, but they should be excluded from default "current LLP" views and should not be mistaken for active guidance.
 
 When an LLP grows large enough that subtopics split into their own LLPs, the **lowest-numbered document** in a subdirectory is the root — it provides the overview and explains how the pieces fit together. This usually happens naturally (the root was written first, subtopics split off later). If it doesn't, documents can be renumbered to achieve it.
 
@@ -127,8 +131,8 @@ LLP documents can take many forms. Rather than splitting them across directories
 ```markdown
 # LLP NNNN: Title
 
-**Type:** RFC | Plan | Explainer | Principle | Guide | Issue
-**Status:** Draft | Active | Superseded | Deleted
+**Type:** RFC | Plan | Explainer | Principle | Guide | Issue | Research
+**Status:** Draft | Active | Superseded | Tombstoned
 **Systems:** Auth, Protocol, Reconciler, ...
 **Author:** ...
 **Date:** ...
@@ -144,10 +148,20 @@ The following are the **standard types** — a core set that covers the most com
 | **Principle** | Core beliefs and values that guide decisions — the "always" and "never" |
 | **Guide** | Usage documentation — how to use, configure, or work with something |
 | **Issue** | A bug, problem, or investigation — what's wrong and what we know |
+| **Research** | Findings from exploration, experiments, or comparative analysis — what was learned and how confident we are |
+
+The following are the **standard statuses**:
+
+| Status | What it means |
+|--------|---------------|
+| **Draft** | In progress and not yet the settled guidance |
+| **Active** | Current guidance |
+| **Superseded** | Replaced by newer guidance but still kept in-tree for migration or compatibility context |
+| **Tombstoned** | Historical context kept under `llp/tombstones/`; no longer current guidance |
 
 A project might also define its own types — for example, **Spec** (normative requirements the code must follow), **Decision** (a specific choice and its rationale, like an ADR), **Postmortem** (an incident retrospective), or anything else that fits the project's needs. The standard types are conventions, not constraints.
 
-This replaces the traditional pattern of scattering knowledge across `rfcs/`, `docs/plans/`, `docs/`, `adrs/`, etc. The metadata is the taxonomy; the directory is just storage. An agent working on protocol code can query "show me all LLPs where Systems includes 'Protocol'" and get RFCs, plans, and explainers in one result.
+This replaces the traditional pattern of scattering knowledge across `rfcs/`, `docs/plans/`, `docs/`, `adrs/`, etc. The metadata is the taxonomy; the directory is just storage. An agent working on protocol code can query "show me all LLPs where Systems includes 'Protocol'" and get RFCs, plans, explainers, and research notes in one result.
 
 ### 2. Reference syntax
 
@@ -189,7 +203,7 @@ fn flush_and_reconcile(buffer: &SharedMemoryBuffer) -> Result<()> {
 
 #### Referencing non-LLP documents
 
-The system can also reference documents that aren't part of the LLP numbering scheme — external specs, files by path, or project-defined shorthands:
+The system can also reference documents that aren't part of the LLP numbering scheme — external specs, user-facing docs, files by path, or project-defined shorthands:
 
 ```rust
 // @ref docs/vendor/openid-spec.md#4.3 — Token validation requirements
@@ -198,17 +212,17 @@ The system can also reference documents that aren't part of the LLP numbering sc
 
 Shorthand labels like `SPEC` can be defined in a project-level configuration file that maps them to actual file paths.
 
-#### User-facing documentation: `@doc` references
+#### User-facing documentation also uses `@ref`
 
-A parallel reference type connects code to user-facing documentation:
+User-facing documentation uses the same `@ref` prefix as technical rationale. The target path and gloss make the distinction clear:
 
 ```typescript
 // @ref LLP 0051#3 — Tab state persists across navigation
-// @doc guides/navigation.md#tab-persistence — User-facing explanation of tab behavior
+// @ref guides/navigation.md#tab-persistence — User-facing explanation of tab behavior
 export function persistTabState(tabId: string, state: SerializableState): void {
 ```
 
-`@doc` references work identically to `@ref` but target public-facing documents. The validation tooling treats them the same way. This creates a navigable chain: **code** <-> **LLP documents** <-> **user-facing docs**.
+Using a single prefix keeps the syntax and tooling simple. This still creates a navigable chain: **code** <-> **LLP documents** <-> **user-facing docs**.
 
 ### 3. Section anchors in LLP documents
 
@@ -293,7 +307,7 @@ Both views are available via the CLI (`ref-check annotate --order=file <file>` o
 
 ### 6. Bidirectional index
 
-The validation tooling already parses every `@ref` in the codebase. As a byproduct, it generates a **reverse index**: for each LLP section, which source files reference it.
+The validation tooling already parses every `@ref` in the codebase. As a byproduct, it can generate reverse indices for any referenced document set. The most important one is the LLP implementation map: for each LLP section, which source files reference it.
 
 Example auto-generated output:
 
@@ -333,7 +347,7 @@ When modifying code that carries a `@ref`:
 
 The validation tooling assists with this but does not enforce it.
 
-LLP documents themselves follow the same principle: when the system evolves, update the document. Don't leave stale design docs lying around — they actively mislead.
+LLP documents themselves follow the same principle: when the system evolves, update the document. If a document is no longer current but still useful, mark it `Superseded` or move it to `llp/tombstones/` with `**Status:** Tombstoned`. Don't leave stale guidance lying around unmarked.
 
 ### Agent policy
 
@@ -404,7 +418,7 @@ def get_db_pool(config: DBConfig) -> ConnectionPool:
 
 Converting an existing codebase to LLP is tractable if done incrementally.
 
-1. **Write LLPs for your key design decisions.** Start with the subsystems that are most often misunderstood or where agents are most likely to make mistakes. These don't need to be exhaustive — even a short LLP with numbered sections is a useful reference target.
+1. **Write LLPs for your key design decisions.** Start with the subsystems that are most often misunderstood or where agents are most likely to make mistakes. These don't need to be exhaustive — even a short LLP with stable section targets is a useful reference target.
 
 2. **Add `@ref` to module entry points.** For each major directory or module, add a top-level reference to its governing LLP. This is low-effort, high-value — it immediately gives agents subsystem orientation.
 
@@ -414,7 +428,7 @@ Converting an existing codebase to LLP is tractable if done incrementally.
 
 ### In a new project
 
-1. **Write LLPs alongside code.** Even lightweight documents with numbered sections provide valuable reference targets.
+1. **Write LLPs alongside code.** Even lightweight documents with stable section targets provide valuable reference targets.
 2. **Reference as you implement.** When writing code that implements a design decision, add the `@ref` immediately — this is when the connection is freshest.
 3. **Instruct your agents.** Configure `CLAUDE.md` (or equivalent) to tell AI agents to add `@ref` annotations when implementing LLP-documented decisions.
 
