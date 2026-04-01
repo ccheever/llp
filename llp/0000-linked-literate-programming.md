@@ -1,6 +1,6 @@
 # LLP 0000: Linked Literate Programming
 
-**Type:** RFC
+**Type:** Explainer
 **Status:** Draft
 **Systems:** LLP
 **Role:** Root
@@ -11,15 +11,23 @@
 
 This document specifies a lightweight system for linking code to its design rationale through machine-readable references to document sections. Instead of embedding verbose explanations in source files, code carries thin pointers — standardized comments that reference specific sections of LLP documents. Agents and humans follow these links to retrieve deeper context on demand.
 
-The system introduces five concepts:
+The system is organized in two layers:
+
+**LLP Core** defines the minimum contract every LLP-enabled project needs:
 
 1. **LLP documents** — numbered, living design documents that capture the thinking behind a software system, consumable and modifiable by both humans and agents
 2. **A reference syntax** — a standard comment format (`@ref`) pointing from code to LLP document sections
-3. **Validation tooling** — a pipeline of composable tools that extract references, validate targets, generate indices, and produce annotated views
-4. **A bidirectional index** — auto-generated reverse maps showing which code implements each document section
-5. **Annotated source generation** — on-demand "literate programming" views that interleave referenced prose with code, in either file order or rationale order
+3. **Attachment semantics** — rules for what code construct a `@ref` binds to
+4. **Section anchors** — stable targets in LLP documents that references point to
 
-The goal is to make codebases self-documenting without embedding prose in source files, to give agents efficient access to design rationale at the right level of detail, to keep the link between design documents and implementation honest over time, and to create a navigable chain from code through design rationale to user-facing documentation.
+**LLP Extensions** are optional capabilities that layer on top of the core:
+
+5. **Relation types** — optional semantic qualifiers (`implements`, `constrained-by`, `tests`, `explains`) on references
+6. **Validation tooling** — a pipeline of composable tools that extract references, validate targets, generate indices, and produce annotated views
+7. **Annotated source generation** — on-demand literate programming views organized by design intent rather than compiler order
+8. **Bidirectional index** — auto-generated reverse maps showing which code implements each document section
+
+The most novel capability is annotated source generation: given `@ref` annotations, the system can produce a literate programming view organized by design intent rather than compiler order — the promise of literate programming without the maintenance burden of interleaving prose and code in source files.
 
 ## Motivation
 
@@ -39,11 +47,15 @@ Any project of sufficient complexity accumulates design knowledge — in people'
 - There's no machine-readable format, so tooling can't validate them.
 - There's no way to know *how much* context to pull in — is this a "read the whole doc" reference or a "read this one paragraph" reference?
 
-### Humans reading AI-generated code need breadcrumbs
+### Humans reviewing AI-generated code need breadcrumbs
 
 As agents write more code, humans reviewing that code need efficient ways to understand *why* a particular approach was taken. AI-generated code is characteristically "locally plausible but globally constrained" — the mechanism looks correct in isolation, but the real question is whether it satisfies cross-cutting invariants that aren't visible in the immediate context. A reference to a specific document section shifts code review from "what on earth is this doing?" to "does this satisfy the intended constraint?" — a far more productive question.
 
-## Design
+---
+
+## LLP Core
+
+The core defines four concepts. These are sufficient on their own — a project can adopt LLP without any of the extensions.
 
 ### 1. LLP documents
 
@@ -63,14 +75,12 @@ LLP documents are designed to be read, written, and modified by both humans and 
 
 LLP documents are identified by zero-padded numbers: `LLP 0000` through `LLP 9999`. Filenames follow the pattern `NNNN-slug.md` (e.g., `0042-authentication.md`).
 
-If a project exceeds 9999 documents, all existing documents are renumbered to 5 digits (`00000`-`99999`). If 99999 is exceeded, expand to 6 digits, and so on. The number width is always uniform across the project.
-
 #### Filesystem organization
 
-LLP documents live in an `llps/` directory (or whatever a project chooses). They can be flat or grouped into subdirectories for human convenience:
+LLP documents live in an `llp/` directory. They can be flat or grouped into subdirectories for human convenience:
 
 ```
-llps/
+llp/
   0001-project-overview.md
   protocol/
     0003-binary-protocol.md
@@ -83,7 +93,7 @@ llps/
     0009-legacy-sync-design.md
 ```
 
-Directories are not numbered — they're just organizational buckets. The LLP number is the identity; the directory is just storage. `@ref LLP 0003#2.1` doesn't encode the directory path, so documents can be reorganized freely without breaking references.
+Directories are not numbered — they're just organizational buckets. The LLP number is the identity; the directory is just storage. `@ref LLP 0003#focus-trapping` doesn't encode the directory path, so documents can be reorganized freely without breaking references.
 
 `tombstones/` is a reserved bucket for LLPs that are no longer part of current guidance but are still worth keeping around for historical or migration context. Tombstoned LLPs remain referenceable by number, but they should be excluded from default "current LLP" views and should not be mistaken for active guidance.
 
@@ -104,7 +114,7 @@ The root document should indicate its role in the metadata header:
 
 Not every subdirectory needs a root. A directory might just be a loose grouping of related LLPs with no hierarchy. That's fine — the convention only applies when there's a natural parent/child relationship.
 
-The root document is usually an **Explainer** that orients readers to the project or subsystem. In projects where the system itself is still being designed, the root document may also be the governing **RFC**. The important part is that LLP 0000 is the entry point and carries `**Role:** Root`.
+The root document of a project is typically an **Explainer** that orients readers to the system. The important part is that LLP 0000 is the entry point and carries `**Role:** Root`.
 
 #### Metadata header
 
@@ -112,8 +122,8 @@ Every LLP begins with a small metadata header directly below the title. LLP uses
 
 Required fields:
 
-- `**Type:**` — the document kind
-- `**Status:**` — the document lifecycle state
+- `**Type:**` — the document kind (what kind of content this is)
+- `**Status:**` — the document lifecycle state (where it is in its lifecycle)
 - `**Systems:**` — one or more systems, domains, or subsystems this LLP applies to
 - `**Author:**` — the primary author or editors
 - `**Date:**` — creation date in `YYYY-MM-DD`
@@ -124,31 +134,37 @@ Optional fields:
 - `**Revised:** YYYY-MM-DD` — last substantive revision date
 - `**Related:** LLP 0007, docs/foo.md` — nearby documents worth reading with this one
 
-#### Types
+#### Types and statuses
 
 LLP documents can take many forms. Rather than splitting them across directories (rfcs/, plans/, docs/), they all live in one unified system, classified by metadata:
 
 ```markdown
 # LLP NNNN: Title
 
-**Type:** RFC | Plan | Explainer | Principle | Guide | Issue | Research
+**Type:** RFC | Spec | Decision | Plan | Explainer | Principle | Guide | Issue | Research
 **Status:** Draft | Active | Superseded | Tombstoned
 **Systems:** Auth, Protocol, Reconciler, ...
 **Author:** ...
 **Date:** ...
 ```
 
-The following are the **standard types** — a core set that covers the most common kinds of design documents. Projects don't need to use all of them, and can define their own types beyond this list. Over time, this set may evolve as real-world usage patterns emerge.
+**Type** classifies what kind of content the document contains. **Status** classifies where it is in its lifecycle. These are orthogonal — an RFC can be Draft or Active; a Spec can be Active or Superseded.
+
+The following are the **standard types** — a core set that covers the most common kinds of design documents. Projects don't need to use all of them, and can define their own types beyond this list.
 
 | Type | What it is |
 |------|-----------|
 | **RFC** | A design proposal — the "what" and "why" of an approach, open for discussion |
+| **Spec** | Normative requirements the code must follow — the "must" and "must not" |
+| **Decision** | A specific choice and its rationale — what was decided and why, like an ADR |
 | **Plan** | Execution or implementation steps — the "how" and "when" |
 | **Explainer** | Teaching material — helps someone understand a subsystem or concept |
 | **Principle** | Core beliefs and values that guide decisions — the "always" and "never" |
 | **Guide** | Usage documentation — how to use, configure, or work with something |
 | **Issue** | A bug, problem, or investigation — what's wrong and what we know |
 | **Research** | Findings from exploration, experiments, or comparative analysis — what was learned and how confident we are |
+
+The distinction between types handles questions like "is 'we chose PostgreSQL over DynamoDB' an RFC or a Decision?" If the document is proposing the choice for discussion, it's an RFC. If the choice is settled and the document records what was decided, it's a Decision. If it specifies requirements that implementations must follow, it's a Spec.
 
 The following are the **standard statuses**:
 
@@ -159,33 +175,45 @@ The following are the **standard statuses**:
 | **Superseded** | Replaced by newer guidance but still kept in-tree for migration or compatibility context |
 | **Tombstoned** | Historical context kept under `llp/tombstones/`; no longer current guidance |
 
-A project might also define its own types — for example, **Spec** (normative requirements the code must follow), **Decision** (a specific choice and its rationale, like an ADR), **Postmortem** (an incident retrospective), or anything else that fits the project's needs. The standard types are conventions, not constraints.
+A project might also define its own types — for example, **Postmortem** (an incident retrospective) or anything else that fits the project's needs. The standard types are conventions, not constraints.
 
-This replaces the traditional pattern of scattering knowledge across `rfcs/`, `docs/plans/`, `docs/`, `adrs/`, etc. The metadata is the taxonomy; the directory is just storage. An agent working on protocol code can query "show me all LLPs where Systems includes 'Protocol'" and get RFCs, plans, explainers, and research notes in one result.
+This replaces the traditional pattern of scattering knowledge across `rfcs/`, `docs/plans/`, `docs/`, `adrs/`, etc. The metadata is the taxonomy; the directory is just storage.
+
+#### The Systems field
+
+The `**Systems:**` field is what makes LLP a queryable knowledge system rather than just a folder of numbered markdown files. An agent working on protocol code can query "show me all LLPs where Systems includes 'Protocol'" and get RFCs, specs, explainers, and research notes in one result.
+
+Guidelines for defining systems:
+
+- **Match your architecture.** Systems should map to real subsystems, domains, or bounded contexts in your code. If you have an `auth/` package, `Auth` is a system.
+- **Keep the vocabulary consistent.** Use the same system name across all documents that describe the same subsystem. Don't mix `Auth` and `Authentication`.
+- **Stay flat unless you need hierarchy.** Most projects work fine with a flat list of systems. If you need hierarchy (e.g., `Protocol.Compression`), use dot-notation, but only when the distinction matters for querying.
+- **Multiple systems are normal.** A document about how auth tokens interact with the protocol layer naturally belongs to both `Auth` and `Protocol`.
+- **Evolve the vocabulary.** As the system grows, system names will shift. Update the metadata when it happens.
 
 ### 2. Reference syntax
 
 Code references use the following format:
 
 ```
-@ref LLP NNNN#SECTION — Optional short gloss
+@ref LLP NNNN#anchor — Optional short gloss
 ```
 
 Where:
 - `LLP NNNN` is the document number (zero-padded to match the project's current width)
-- `#SECTION` is a section number (e.g., `#3`, `#3.2`, `#3.2.1`) or a `#heading-slug` anchor
+- `#anchor` is a heading slug (e.g., `#focus-trapping`) or a section number (e.g., `#3`, `#3.2`)
 - The `#` delimiter follows the existing convention for markdown heading anchors and URL fragments
 - The gloss after the em dash is optional, <=80 characters, and summarizes what the section explains
 
 In context:
 
 ```rust
-// @ref LLP 0074#5.1 — Focus trapping prevents tab-escape from modals
+// @ref LLP 0074#focus-trapping — Focus trapping prevents tab-escape from modals
 pub fn trap_focus_in_modal(node: NodeId) -> Result<()> {
 ```
 
 ```typescript
-// @ref LLP 0003#2.1 — OpCode ordering guarantees
+// @ref LLP 0003#opcode-ordering — OpCode ordering guarantees
 function flushOpCodeBuffer(buffer: SharedArrayBuffer): void {
 ```
 
@@ -196,8 +224,8 @@ The `@ref` prefix makes references grep-able and distinguishable from casual men
 A code region can carry multiple references:
 
 ```rust
-// @ref LLP 0003#2.1 — OpCode ordering guarantees
-// @ref LLP 0012#3 — Reconciler batching strategy
+// @ref LLP 0003#opcode-ordering — OpCode ordering guarantees
+// @ref LLP 0012#batching — Reconciler batching strategy
 fn flush_and_reconcile(buffer: &SharedMemoryBuffer) -> Result<()> {
 ```
 
@@ -206,8 +234,8 @@ fn flush_and_reconcile(buffer: &SharedMemoryBuffer) -> Result<()> {
 The system can also reference documents that aren't part of the LLP numbering scheme — external specs, user-facing docs, files by path, or project-defined shorthands:
 
 ```rust
-// @ref docs/vendor/openid-spec.md#4.3 — Token validation requirements
-// @ref SPEC#2.1 — Binary header layout
+// @ref docs/vendor/openid-spec.md#token-validation — Token validation requirements
+// @ref SPEC#binary-header — Binary header layout
 ```
 
 Shorthand labels like `SPEC` can be defined in a project-level configuration file that maps them to actual file paths.
@@ -217,24 +245,96 @@ Shorthand labels like `SPEC` can be defined in a project-level configuration fil
 User-facing documentation uses the same `@ref` prefix as technical rationale. The target path and gloss make the distinction clear:
 
 ```typescript
-// @ref LLP 0051#3 — Tab state persists across navigation
+// @ref LLP 0051#tab-persistence — Tab state persists across navigation
 // @ref guides/navigation.md#tab-persistence — User-facing explanation of tab behavior
 export function persistTabState(tabId: string, state: SerializableState): void {
 ```
 
 Using a single prefix keeps the syntax and tooling simple. This still creates a navigable chain: **code** <-> **LLP documents** <-> **user-facing docs**.
 
-### 3. Section anchors in LLP documents
+### 3. Attachment semantics
 
-For this system to work, LLP documents need stable section targets. References can use either **numbered sections** (`#3.1`) or **heading slugs** (`#focus-trapping`). Both are first-class; projects and individual documents can use whichever fits.
+A `@ref` annotation attaches to a specific code construct. The attachment rules are:
 
-**Numbered sections** (`## 3. Foo`, `### 3.1 Bar`) are compact in references and read naturally in hierarchically structured documents like specs and proposals. The tradeoff is stability: inserting a section between 3.1 and 3.2 means renumbering (or resorting to 3.1.1). The validation tooling catches broken references when this happens, so it's a mechanical fix rather than a silent breakage.
+1. **Contiguous `@ref` lines attach to the next syntactic node.** One or more consecutive `@ref` comment lines immediately followed by a function, class, struct, constant, or other declaration attach to that declaration.
 
-**Heading slugs** (`## Focus trapping`, referenced as `#focus-trapping`) survive restructuring — you can reorder sections freely without breaking references. The tradeoff is verbosity: `@ref LLP 0051#persistent-tab-state-across-navigation` is painful in a code comment. Best for documents that are more fluid, like explainers and guides.
+2. **Doc-comment `@ref` lines attach to the file or module.** `@ref` annotations in a file's leading doc-comment (e.g., `//!` in Rust, a module-level docstring in Python, or the first comment block before any imports or code) attach to the file or module as a whole.
 
-In practice, numbered sections are conventional for LLPs that have a natural hierarchy, and heading slugs work well for everything else. Mixing within a single document is fine.
+3. **Otherwise, attach to the next non-comment line.** When a `@ref` doesn't fall into the above categories, it attaches to the next line of actual code.
 
-### 4. Validation tooling (pipeline architecture)
+A blank line between a `@ref` annotation and its target breaks the attachment — the annotation becomes free-floating (and should be flagged by validation tooling). Place annotations directly above the code they describe.
+
+```rust
+// Attaches to trap_focus_in_modal:
+// @ref LLP 0074#focus-trapping — Focus trapping prevents tab-escape
+pub fn trap_focus_in_modal(node: NodeId) -> Result<()> { ... }
+
+// Both attach to flush_and_reconcile (contiguous block):
+// @ref LLP 0003#opcode-ordering — OpCode ordering guarantees
+// @ref LLP 0012#batching — Reconciler batching strategy
+fn flush_and_reconcile(buffer: &SharedMemoryBuffer) -> Result<()> { ... }
+```
+
+```rust
+//! @ref LLP 0074 — Accessibility subsystem design
+//!
+//! This module implements the accessibility semantics tree.
+// ↑ Attaches to the module.
+```
+
+### 4. Section anchors in LLP documents
+
+For this system to work, LLP documents need stable section targets. References can use either **heading slugs** (`#focus-trapping`) or **numbered sections** (`#3.1`). Both are supported; heading slugs are recommended as the default.
+
+**Heading slugs** (`## Focus trapping`, referenced as `#focus-trapping`) are the preferred default for most LLP documents. They survive restructuring — you can reorder, insert, and merge sections freely without breaking any `@ref` in the codebase. This matters because LLP documents are living documents that evolve with the system. A restructured LLP that triggers a 40-file code change to update numbered references is real friction — exactly the kind that kills adoption.
+
+**Numbered sections** (`## 3. Foo`, `### 3.1 Bar`, referenced as `#3` or `#3.1`) are compact in references and read naturally in hierarchically structured documents. They are appropriate for stable, spec-like documents where the structure is unlikely to change. The tradeoff is that inserting a section means renumbering and updating all references.
+
+In practice, heading slugs work well for most LLP documents — RFCs, explainers, decisions, guides. Numbered sections suit specs and formal proposals where the structure is settled. Mixing within a single document is fine.
+
+---
+
+## LLP Extensions
+
+Everything in this section is optional. A project can use LLP Core — documents, references, attachment semantics, and anchors — without adopting any extensions. Extensions are designed to be adopted independently.
+
+### 5. Relation types
+
+A `@ref` can optionally carry a **relation type** that qualifies the nature of the link between the code and the referenced document section.
+
+Format:
+
+```
+@ref LLP NNNN#anchor [relation] — Optional gloss
+```
+
+Standard relation types:
+
+| Relation | Meaning |
+|----------|---------|
+| `implements` | This code realizes the referenced design |
+| `constrained-by` | This code is shaped by constraints documented in the referenced section |
+| `tests` | This code tests the behavior described in the referenced section |
+| `explains` | This code is the subject of the referenced explanation |
+
+If no relation type is specified, the reference is a general association — the default and most common case. Relation types are most valuable for indexing and agent retrieval: an agent looking for "all code constrained by this requirement" gets a more precise answer than "all code referencing this section."
+
+```typescript
+// @ref LLP 0003#opcode-ordering [implements] — Creates before updates before deletes
+export function flushOpCodeBuffer(buffer: SharedArrayBuffer): void {
+
+// @ref LLP 0017#database-choice [constrained-by] — Must use PostgreSQL for transactional guarantees
+def get_db_pool(config: DBConfig) -> ConnectionPool:
+
+// @ref LLP 0051#tab-persistence [tests] — Tab state persists across navigation
+describe('tab persistence', () => {
+```
+
+Most references work fine without relation types. Add them when the distinction matters — typically in codebases large enough for automated indexing and agent retrieval to be valuable.
+
+### 6. Validation tooling (planned)
+
+> **Note:** The tooling described in this section is planned but not yet implemented. The pipeline design is specified here to guide implementation; LLP Core works without it.
 
 Following Norman Ramsey's noweb design principle — small composable filters rather than a monolithic tool — the validation system is a pipeline of four independent stages. Each stage has a clear input and output, and can be used standalone or chained.
 
@@ -255,7 +355,9 @@ This architecture means new capabilities (e.g., a "which LLP sections have no im
 - **Orphaned references** (code changed substantially near a reference) are **warnings**. Staleness is a judgment call — the reference might still be valid even if surrounding code changed.
 - **Coverage gaps** are **informational only**. Never a gate.
 
-### 5. Annotated source generation
+### 7. Annotated source generation (planned)
+
+> **Note:** This is planned tooling, not yet implemented.
 
 The `annotate` pipeline stage generates read-only views of source files by pulling in referenced LLP text inline. These are never checked in, never edited — they're the "literate programming" output without the literate programming maintenance burden.
 
@@ -264,7 +366,7 @@ The `annotate` pipeline stage generates read-only views of source files by pulli
 The simplest mode: walk the source file top-to-bottom, inserting referenced prose above each annotated function:
 
 ```
-┌─ LLP 0074#5.1: Focus trapping ─────────────────────────┐
+┌─ LLP 0074#focus-trapping ──────────────────────────────┐
 │ Modal dialogs must trap focus to prevent keyboard       │
 │ users from tabbing into obscured content. On iOS,       │
 │ VoiceOver handles this natively; on web, we must        │
@@ -277,10 +379,10 @@ pub fn trap_focus_in_modal(node: NodeId) -> Result<()> {
 
 #### Rationale-order view
 
-The deeper idea, drawn from Knuth and Ramsey's literate programming: present code in the order that makes sense for human understanding, not the order the compiler demands. The annotator groups functions by the LLP section they reference, even if they're scattered across the file:
+This is the most novel capability of LLP, drawn from Knuth and Ramsey's literate programming: present code in the order that makes sense for human understanding, not the order the compiler demands. The annotator groups functions by the LLP section they reference, even if they're scattered across the file:
 
 ```
-━━━ LLP 0074#3: Implicit semantics ━━━━━━━━━━━━━━━━━━━━━━
+━━━ LLP 0074#implicit-semantics ━━━━━━━━━━━━━━━━━━━━━━━━━
 
   Components carry default roles without developer opt-in.
   A <Pressable> is a button; a <TextInput> is a textbox.
@@ -288,7 +390,7 @@ The deeper idea, drawn from Knuth and Ramsey's literate programming: present cod
   pub fn infer_role(node: &RenderNode) -> Option<SemanticRole> { ... }
   pub fn default_label(node: &RenderNode) -> Option<String> { ... }
 
-━━━ LLP 0074#5: Focus management ━━━━━━━━━━━━━━━━━━━━━━━━
+━━━ LLP 0074#focus-management ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   Focus trapping, restoration, and custom focus order.
 
@@ -305,9 +407,11 @@ This is a generated *story* about the file, organized by design intent rather th
 
 Both views are available via the CLI (`ref-check annotate --order=file <file>` or `--order=rationale`) and optionally through a dev server integration.
 
-### 6. Bidirectional index
+### 8. Bidirectional index (planned)
 
-The validation tooling already parses every `@ref` in the codebase. As a byproduct, it can generate reverse indices for any referenced document set. The most important one is the LLP implementation map: for each LLP section, which source files reference it.
+> **Note:** This is planned tooling, not yet implemented.
+
+The validation tooling parses every `@ref` in the codebase. As a byproduct, it can generate reverse indices for any referenced document set. The most important one is the LLP implementation map: for each LLP section, which source files reference it.
 
 Example auto-generated output:
 
@@ -316,14 +420,16 @@ Example auto-generated output:
 
 | Section | Referenced by |
 |---------|--------------|
-| #2.1 OpCode ordering | `src/protocol.rs:42`, `src/reconciler.ts:118` |
-| #3 Reconciler batching | `src/reconciler.ts:203` |
-| #5.1 Focus trapping | `src/semantics.rs:87` |
+| #opcode-ordering | `src/protocol.rs:42`, `src/reconciler.ts:118` |
+| #batching | `src/reconciler.ts:203` |
+| #focus-trapping | `src/semantics.rs:87` |
 ```
 
 This closes the navigation loop: code points to LLPs (via `@ref`), and LLPs point back to code (via the index). An agent implementing a new section can immediately see what already exists. A human reviewing an LLP can click through to every place it's been realized.
 
 The index is always generated, never hand-edited. It updates on every `ref-check` run.
+
+---
 
 ## Conventions
 
@@ -345,8 +451,6 @@ When modifying code that carries a `@ref`:
 2. If the code has diverged from the LLP, either update the LLP (if the design changed) or update the reference (if the code now implements a different section).
 3. If the referenced section no longer applies, remove the reference.
 
-The validation tooling assists with this but does not enforce it.
-
 LLP documents themselves follow the same principle: when the system evolves, update the document. If a document is no longer current but still useful, mark it `Superseded` or move it to `llp/tombstones/` with `**Status:** Tombstoned`. Don't leave stale guidance lying around unmarked.
 
 ### Agent policy
@@ -358,7 +462,96 @@ Agents should be instructed to add `@ref` annotations when they implement or mod
 
 This keeps LLP self-reinforcing without turning it into a noisy checklist.
 
-## Examples
+### Git workflow
+
+LLP changes should follow the code they document:
+
+- **Commit together.** When a code change implements a design documented in an LLP, the `@ref` annotation should land in the same commit as the code. When a design change requires updating an LLP document, the document update should land with the code change that motivated it.
+- **Don't batch LLP updates separately.** A commit that only updates LLP documents with no corresponding code change is a signal that the documents drifted. Occasional cleanup commits are fine, but the norm should be co-evolution.
+- **Merge conflicts in LLP documents are normal.** Resolve them the same way you'd resolve any markdown conflict — the content matters, not the formatting. If two branches modify the same LLP section, the merge is a chance to reconcile divergent thinking.
+
+## End-to-end example
+
+A minimal project using LLP:
+
+```
+my-project/
+  llp/
+    0000-my-project.md
+    0001-auth-design.md
+  src/
+    auth.py
+  CLAUDE.md
+```
+
+**`llp/0000-my-project.md`** — root explainer:
+
+```markdown
+# LLP 0000: My Project
+
+**Type:** Explainer
+**Status:** Active
+**Systems:** Core
+**Role:** Root
+**Author:** J. Dev
+**Date:** 2026-01-15
+
+## Overview
+
+My Project is a REST API for managing widgets.
+
+## Architecture
+
+Two subsystems: authentication (LLP 0001) and widget management.
+```
+
+**`llp/0001-auth-design.md`** — auth design decision:
+
+```markdown
+# LLP 0001: Authentication Design
+
+**Type:** Decision
+**Status:** Active
+**Systems:** Auth
+**Author:** J. Dev
+**Date:** 2026-01-15
+
+## Token strategy
+
+Sessions use short-lived JWTs. Tokens are rotated on privilege
+escalation to prevent session fixation.
+
+## Database choice
+
+Chose PostgreSQL over DynamoDB for transactional guarantees
+across the auth/billing boundary.
+```
+
+**`src/auth.py`** — annotated source:
+
+```python
+# @ref LLP 0001 — Auth subsystem
+
+# @ref LLP 0001#token-strategy [constrained-by] — Tokens rotate on privilege change
+def rotate_on_escalation(session: Session) -> Session:
+    ...
+
+# @ref LLP 0001#database-choice [constrained-by] — PostgreSQL for txn guarantees
+def get_db_pool(config: DBConfig) -> ConnectionPool:
+    ...
+```
+
+**Expected `ref-check extract` output** (planned tooling):
+
+```json
+[
+  {"file": "src/auth.py", "line": 1, "target": "LLP 0001", "section": null, "relation": null, "gloss": "Auth subsystem"},
+  {"file": "src/auth.py", "line": 3, "target": "LLP 0001", "section": "token-strategy", "relation": "constrained-by", "gloss": "Tokens rotate on privilege change"},
+  {"file": "src/auth.py", "line": 7, "target": "LLP 0001", "section": "database-choice", "relation": "constrained-by", "gloss": "PostgreSQL for txn guarantees"}
+]
+```
+
+## Code examples
 
 ### Rust — module-level + specific references
 
@@ -366,16 +559,16 @@ This keeps LLP self-reinforcing without turning it into a noisy checklist.
 //! Accessibility semantics tree.
 //!
 //! @ref LLP 0074 — Accessibility subsystem design
-//! @ref LLP 0019#6 — Agent/accessibility convergence
+//! @ref LLP 0019#agent-convergence — Agent/accessibility convergence
 
 use crate::tree::NodeId;
 
-// @ref LLP 0074#5.1 — Focus trapping prevents tab-escape from modals
+// @ref LLP 0074#focus-trapping — Focus trapping prevents tab-escape from modals
 pub fn trap_focus_in_modal(node: NodeId) -> Result<()> {
     // ...
 }
 
-// @ref LLP 0074#3.2 — Implicit semantics: Pressable -> button role
+// @ref LLP 0074#implicit-semantics — Implicit semantics: Pressable -> button role
 pub fn infer_role(node: &RenderNode) -> Option<SemanticRole> {
     // ...
 }
@@ -387,8 +580,8 @@ pub fn infer_role(node: &RenderNode) -> Option<SemanticRole> {
 // @ref LLP 0003 — Binary Protocol
 // @ref LLP 0012 — Reconciler
 
-// @ref LLP 0003#2.1 — OpCode ordering: creates before updates before deletes
-// @ref SPEC#4.3 — Binary header: 4-byte magic, 2-byte version, 2-byte count
+// @ref LLP 0003#opcode-ordering [implements] — Creates before updates before deletes
+// @ref SPEC#binary-header — Binary header: 4-byte magic, 2-byte version, 2-byte count
 export function flushOpCodeBuffer(buffer: SharedArrayBuffer): void {
   // ...
 }
@@ -397,7 +590,7 @@ export function flushOpCodeBuffer(buffer: SharedArrayBuffer): void {
 ### Minimal — just a specific note
 
 ```typescript
-// @ref LLP 0051#3 — Tab state persists across navigation to prevent data loss
+// @ref LLP 0051#tab-persistence — Tab state persists across navigation to prevent data loss
 function persistTabState(tabId: string, state: SerializableState): void {
   // ...
 }
@@ -406,8 +599,8 @@ function persistTabState(tabId: string, state: SerializableState): void {
 ### Python
 
 ```python
-# @ref LLP 0017#4 — Chose PostgreSQL over DynamoDB for transactional guarantees
-# @ref LLP 0023#2.3 — Connection pooling strategy
+# @ref LLP 0017#database-choice [constrained-by] — Chose PostgreSQL for transactional guarantees
+# @ref LLP 0023#connection-pooling — Connection pooling strategy
 def get_db_pool(config: DBConfig) -> ConnectionPool:
     ...
 ```
@@ -416,7 +609,7 @@ def get_db_pool(config: DBConfig) -> ConnectionPool:
 
 ### In an existing project
 
-Converting an existing codebase to LLP is tractable if done incrementally.
+Converting an existing codebase to LLP is tractable if done incrementally:
 
 1. **Write LLPs for your key design decisions.** Start with the subsystems that are most often misunderstood or where agents are most likely to make mistakes. These don't need to be exhaustive — even a short LLP with stable section targets is a useful reference target.
 
@@ -426,11 +619,17 @@ Converting an existing codebase to LLP is tractable if done incrementally.
 
 4. **Agent-assisted annotation sprints.** For complex subsystems, an agent can be tasked: "Read LLP 0074 and `src/semantics.rs`. Identify functions that implement specific sections and propose `@ref` annotations." The agent reads both the LLP and the code, proposes references, and a human reviews them.
 
-### In a new project
+See [LLP 0001](./0001-greenfield-setup.md) for detailed greenfield setup steps and [LLP 0002](./0002-retrofitting-llp.md) for a detailed retrofit guide.
 
-1. **Write LLPs alongside code.** Even lightweight documents with stable section targets provide valuable reference targets.
-2. **Reference as you implement.** When writing code that implements a design decision, add the `@ref` immediately — this is when the connection is freshest.
-3. **Instruct your agents.** Configure `CLAUDE.md` (or equivalent) to tell AI agents to add `@ref` annotations when implementing LLP-documented decisions.
+### Adoption principles
+
+These apply whether starting from scratch or retrofitting:
+
+- **Don't over-annotate.** Early code is volatile. Wait until a module's design stabilizes before annotating heavily.
+- **Boy scout rule.** When touching a file, add or update references for the code you're changing. This spreads annotation work naturally.
+- **Start with module-level refs.** Broad references at the top of each major file provide immediate subsystem orientation for agents with minimal effort.
+- **Don't write docs preemptively.** Write LLPs when you actually make decisions, while the reasoning is fresh.
+- **Start flat.** Add subdirectories when you have enough documents to warrant grouping, not before.
 
 ### Quality gate
 
@@ -445,27 +644,39 @@ A reference is only worth adding if it's *accurate and specific*. A vague `@ref 
 
 ## Open questions
 
-1. **Should the checker run in CI from day one, or start as a local-only tool?** CI integration adds visibility but might create noise during the initial adoption period when few references exist.
+1. **How should references interact with code that spans multiple files?** A cross-cutting concern touches many files. Should there be a way to declare "all files in this directory implement this LLP" without annotating each one? (A `.refs` manifest file, perhaps.)
 
-2. **Is `@ref` the right prefix, or would something shorter (`@see`) or longer (`@llp-ref`) be better?** `@ref` is concise and broadly applicable. `@see` collides with JSDoc.
-
-3. **Should the rationale-order view be the default for annotated source, or should file-order be the default?** Rationale-order is more useful for understanding but less useful for locating specific code.
-
-4. **How should references interact with code that spans multiple files?** A cross-cutting concern touches many files. Should there be a way to declare "all files in this directory implement this LLP" without annotating each one? (A `.refs` manifest file, perhaps.)
-
-5. **Should references carry metadata about _why_ they exist?** For example, distinguishing "this code maintains a documented invariant" from "this code implements a specific decision" from "this code is constrained by a documented requirement." See the discussion in the next section.
-
-## Deferred: altitude tags
-
-An earlier draft included "altitude tags" (`@system`, `@tactical`) to classify how much context an agent should pull in. This was deferred in favor of keeping the syntax minimal — the presence or absence of a section number already carries a similar signal. May be revisited if experience shows that agents need stronger hints about context scope.
+2. **Should the rationale-order view be the default for annotated source, or should file-order be the default?** Rationale-order is more useful for understanding but less useful for locating specific code.
 
 ## Prior art
 
-- **Knuth's Literate Programming (WEB/CWEB):** The original — interleave prose and code, generate both documentation and executable. Beautiful but high-maintenance; the tight coupling between prose and code makes refactoring painful. The core insight that code should be presentable in explanation order, not compiler order, directly inspires the rationale-order annotated view.
-- **Ramsey's noweb:** Norman Ramsey's [simplified literate programming tool](https://www.linuxjournal.com/article/2188) (1994) stripped WEB down to two primitives (named chunks and references) and a pipeline architecture of composable filters. His [IEEE Software paper](https://mirror.gutenberg-asso.fr/tex.loria.fr/litte/ieee.pdf) "Literate Programming Can Be Simple and Extensible" demonstrated that most of WEB's complexity was inessential — the value came from cross-referencing and human-order presentation, not from prettyprinting or macro expansion. The pipeline architecture and the principle that the system must be simple enough that people actually use it are directly drawn from Ramsey's work.
-- **Docco / Literate CoffeeScript:** Side-by-side code and comments. Lighter than Knuth but still embeds all prose in source files.
-- **Rust `//!` module docs and `///` doc comments:** Good for API documentation but not for linking to external design rationale.
-- **Architecture Decision Records (ADRs):** Similar spirit — document decisions, reference from code. But ADRs are typically immutable and standalone, lacking machine-readable cross-references and becoming stale over time. LLP documents are living by contrast.
-- **`@see` in JSDoc/Javadoc:** Points to related code, not to design documents. No section granularity.
+LLP draws on a long lineage of literate programming, design documentation, code traceability, and knowledge management systems. A comprehensive survey is in [LLP 0003](./0003-prior-art.md); this section highlights the most direct influences.
 
-This system takes the "thin reference" approach from Ramsey's insight: the minimum viable literate programming system is just cross-references and human-order presentation. Source files carry pointers, not prose. The prose lives in LLP documents. The tooling keeps the pointers honest and can generate the "woven" literate view on demand.
+### Literate programming
+
+- **Knuth's WEB/CWEB (1984):** The original — interleave prose and code, generate both documentation and executable. The insight that code should be presentable in explanation order directly inspires the rationale-order annotated view. But tight coupling makes refactoring painful.
+- **Ramsey's noweb (1994):** Stripped WEB to two primitives and a pipeline architecture. Key finding: the value comes from cross-referencing and human-order presentation, not prettyprinting or macro expansion. The pipeline architecture and simplicity principle are directly inherited by LLP.
+- **Docco / Marginalia:** Side-by-side code-and-comment viewers with zero adoption cost. Proved the most adopted literate-adjacent tools are the lightest.
+- **Jupyter notebooks:** Proved massive demand for connecting explanation to code, but also demonstrated the problems of interleaving prose and code in one file. LLP explicitly rejects the interleaved model.
+- **Eve language (2014–2018):** The strongest cautionary tale against literate programming as authoring format. Validates LLP's design of generating literate views on demand.
+
+### Design documentation
+
+- **Architecture Decision Records (Nygard, 2011):** Similar spirit but ADRs are immutable, lack machine-readable cross-references, and accumulate without consolidation.
+- **Oxide Computer RFDs:** The closest precedent to LLP's living-document philosophy. LLP adds code-to-document linking that RFDs lack.
+- **Diátaxis (Procida):** Validates LLP's typed document system — different types have different quality criteria.
+
+### Code annotation and traceability
+
+- **Requirements traceability (DO-178C, ASPICE):** Proves linking code to rationale has measurable engineering value. LLP avoids overhead by putting links in the code itself.
+- **Kythe (Google):** Validates LLP's pipeline architecture and intermediate JSON format.
+- **Swimm.io:** Proves automated staleness detection is tractable.
+
+### AI-era context management
+
+- **ETH Zurich study on AGENTS.md (2026):** Found agents spent 14–22% more tokens parsing verbose context files. Empirical case for LLP's "pointers, not prose" design.
+- **Codified Context (2026):** Three-tier architecture (hot/warm/cold) maps directly to LLP: the `@ref` is hot, the referenced section is warm, the full document is cold.
+
+### The key synthesis
+
+The minimum viable literate programming system is just cross-references and human-order presentation. Source files carry pointers, not prose. The prose lives in LLP documents. Tooling keeps the pointers honest and can generate the "woven" literate view on demand. No prior system links code to design rationale at section granularity with validated, machine-readable references — this is the gap LLP fills.

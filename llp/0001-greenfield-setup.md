@@ -12,7 +12,7 @@ This document describes the process of bootstrapping LLP in a new project from d
 
 ## 1. Create the LLP directory
 
-Create an `llps/` directory (or `llp/`, or whatever name fits the project). Flat is fine to start. Subdirectories can be added later when there are enough documents in a domain to warrant grouping.
+Create an `llp/` directory. Flat is fine to start. Subdirectories can be added later when there are enough documents in a domain to warrant grouping.
 
 ```
 mkdir llp
@@ -22,7 +22,7 @@ mkdir llp
 
 Every LLP-enabled project should have a root document that orients readers — human or agent — to the project's purpose, architecture, and key design decisions. This is typically `0000-<project-name>.md`.
 
-In most projects, LLP 0000 is an **Explainer** overview. If the project itself is still being designed, LLP 0000 can also be the governing **RFC**. In either case, it should act as the entry point for the corpus and carry `**Role:** Root`.
+LLP 0000 is typically an **Explainer** overview — the entry point for the corpus. It should carry `**Role:** Root`.
 
 This document doesn't need to be long. A few sections covering:
 
@@ -69,12 +69,11 @@ This is the mechanism that makes LLP self-reinforcing: agents that are told abou
 
 ## 6. Don't over-invest upfront
 
-Common mistakes when setting up LLP in a new project:
+See [LLP 0000's adoption principles](./0000-linked-literate-programming.md#adoption-principles) for the full list. The key pitfalls for greenfield projects:
 
-- **Writing too many documents before there's code.** Documents without implementing code are speculation. Write just enough to capture decisions you've actually made, then grow the corpus alongside the codebase.
-- **Annotating everything.** Early code is volatile. References to code that's about to be rewritten create maintenance drag. Wait until a module's design stabilizes before annotating heavily.
-- **Elaborate directory structures.** Start flat. Add subdirectories when you actually have 10+ documents and the flat list is hard to scan.
-- **Perfect prose.** A rough LLP with stable section targets that an agent can reference is more valuable than a polished document that never gets written. You can always improve it later — they're living documents.
+- **Writing too many documents before there's code.** Documents without implementing code are speculation. Write just enough to capture decisions you've actually made.
+- **Annotating everything.** Early code is volatile. Wait until a module's design stabilizes before annotating heavily.
+- **Perfect prose.** A rough LLP with stable section targets is more valuable than a polished document that never gets written.
 
 ## 7. Suggested first documents
 

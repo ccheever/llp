@@ -1,105 +1,105 @@
 # Linked Literate Programming (LLP)
 
-A lightweight system for linking code to its design rationale through machine-readable references. Instead of embedding verbose explanations in source files, code carries thin pointers — standardized comments that reference specific sections of LLP documents. Agents and humans follow these links to retrieve deeper context on demand.
+A lightweight system for linking code to its design rationale through machine-readable references. Code carries thin pointers — standardized `@ref` comments that reference specific sections of LLP documents. Agents and humans follow these links to retrieve deeper context on demand.
 
 ## The core idea
 
 ```rust
-// @ref LLP 0042#3.1 — Session tokens must be rotated on privilege escalation
+// @ref LLP 0042#token-strategy — Session tokens must be rotated on privilege escalation
 pub fn escalate_privilege(session: &Session) -> Result<Session> {
 ```
 
-The `@ref` comment is a machine-readable pointer to a specific section of an LLP document. It tells both humans and AI agents exactly where to find the rationale for this code — without embedding a paragraph of explanation in the source file.
+The `@ref` comment is a machine-readable pointer to a specific section of an LLP document. It tells both humans and AI agents exactly where to find the rationale — without embedding a paragraph of explanation in the source file.
+
+**Rule of thumb:** if an AI agent might "simplify" this code in a way that would break the design intent, it needs a reference.
+
+## The killer feature: rationale-order views
+
+Given `@ref` annotations, LLP can generate literate programming views organized by design intent rather than compiler order — the promise of literate programming without the maintenance burden:
+
+```
+━━━ LLP 0074#implicit-semantics ━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Components carry default roles without developer opt-in.
+
+  pub fn infer_role(node: &RenderNode) -> Option<SemanticRole> { ... }
+  pub fn default_label(node: &RenderNode) -> Option<String> { ... }
+
+━━━ LLP 0074#focus-management ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Focus trapping, restoration, and custom focus order.
+
+  pub fn trap_focus_in_modal(node: NodeId) -> Result<()> { ... }
+  pub fn restore_focus(saved: FocusState) -> Result<()> { ... }
+
+━━━ Unreferenced ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  fn internal_helper() { ... }
+```
+
+A generated *story* about the file, organized by design intent rather than language syntax. (Tooling for this is planned, not yet implemented.)
 
 ## Why
 
 - **AI agents need context but comments are a poor vehicle.** They go stale, long ones waste tokens, and they can't express structure.
-- **Design rationale exists but code doesn't point to it.** Projects accumulate knowledge in documents — but references from code are ad hoc and unvalidatable.
+- **Design rationale exists but code doesn't point to it.** Projects accumulate knowledge in documents — but code references are ad hoc and unvalidatable.
 - **Humans reviewing AI-generated code need breadcrumbs.** A reference to a specific document section shifts review from "what is this doing?" to "does this satisfy the constraint?"
-
-## LLP documents
-
-LLP documents are numbered markdown files (`0000-slug.md`, `0001-slug.md`, ...) that capture the thinking behind a software system — the rationale, plans, constraints, and decisions that aren't encoded directly in code. They are:
-
-- **Living documents.** Active LLPs should be kept up to date as the system evolves. Historical-but-useful LLPs can be moved to `llp/tombstones/` and marked `Tombstoned`; otherwise delete them. Git provides the history.
-- **For humans and agents.** Both can read, write, and modify LLP documents. They serve as shared context between human and AI collaborators.
-- **One unified system.** Proposals, plans, explainers, research findings, specs, guides, decision records — all are LLP documents, classified by metadata rather than scattered across directories.
-
-### Numbering
-
-Documents use zero-padded numbers: `LLP 0000` through `LLP 9999`. If a project exceeds 9999 documents, all are renumbered to 5 digits (`00000`-`99999`), and so on.
 
 ## Quick start
 
-### 1. Write an LLP document
+**1. Create an `llp/` directory and write your first LLP document:**
 
 ```markdown
-# LLP 0003: Binary Protocol
+# LLP 0000: My Project
 
-**Type:** RFC
+**Type:** Explainer
 **Status:** Active
-**Systems:** Protocol, Reconciler
+**Systems:** Core
+**Role:** Root
 **Author:** ...
 **Date:** YYYY-MM-DD
 
-## 2. Message format
+## Overview
 
-### 2.1 OpCode ordering
+What the project does and why.
 
-Creates are always processed before updates, and updates before deletes...
+## Architecture
+
+Major subsystems and how they relate.
 ```
 
-### 2. Add references to your code
+**2. Add references to your code:**
 
 ```typescript
-// @ref LLP 0003#2.1 — OpCode ordering: creates before updates before deletes
-export function flushMessageBuffer(buffer: SharedArrayBuffer): void {
+// @ref LLP 0000#architecture — Widget service boundary
+export function handleWidgetRequest(req: Request): Response {
   // ...
 }
 ```
 
-### 3. Validate references
+**3. Validate references** (planned tooling):
 
 ```bash
 ref-check extract src/ | ref-check resolve
 ```
 
-## Adopting LLP in an existing project
-
-You don't need to annotate everything at once:
-
-1. **Write LLPs for your key design decisions.** Start with the subsystems most often misunderstood or where agents are most likely to make mistakes.
-2. **Add `@ref` to module entry points.** For each major module, add a top-level reference to its governing LLP.
-3. **Add references during normal development.** When touching a file, add references for non-obvious design decisions.
-4. **Rule of thumb:** if an AI agent might "simplify" this code in a way that would break the design intent, it needs a reference.
-
-## Starting a new project with LLP
-
-1. **Write LLP documents alongside code.** Even lightweight docs with stable section targets provide valuable reference targets.
-2. **Reference as you go.** When implementing a design decision, add the `@ref` immediately — this is when the connection is freshest.
-3. **Keep references specific.** `@ref LLP 0005#3.2` is useful. `@ref LLP 0005` without a section is less so.
-
-LLP documents use a markdown metadata header directly below the title. LLP does not require YAML frontmatter.
-
-## What's in this repo
-
-- **[LLP 0000: Linked Literate Programming](./llp/0000-linked-literate-programming.md)** — The root RFC and full specification.
-- **[LLP 0001: Setting Up LLP in a New Repository](./llp/0001-greenfield-setup.md)** — Greenfield adoption guide.
-- **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.md)** — Existing-repo adoption guide.
-- **Tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
-
 ## Reference syntax at a glance
 
 | Element | Format | Example |
 |---------|--------|---------|
-| LLP reference | `@ref LLP NNNN#S — gloss` | `@ref LLP 0005#3.1 — Why we batch writes` |
+| LLP reference | `@ref LLP NNNN#anchor — gloss` | `@ref LLP 0005#token-strategy — Why we rotate tokens` |
+| With relation | `@ref LLP NNNN#anchor [rel] — gloss` | `@ref LLP 0005#token-strategy [implements] — Token rotation` |
 | LLP (broad) | `@ref LLP NNNN` | `@ref LLP 0012 — Auth subsystem` |
-| Path reference | `@ref path/to/doc.md#S` | `@ref docs/vendor/spec.md#4 — Token format` |
-| User-facing doc | `@ref path/to/doc.md#S` | `@ref guides/auth.md#tokens — Public token docs` |
+| Path reference | `@ref path/to/doc.md#anchor` | `@ref docs/vendor/spec.md#tokens — Token format` |
 
-## Prior art
+## What's in this repo
 
-LLP draws on Knuth's literate programming, Ramsey's noweb (composable pipeline, minimal syntax), Architecture Decision Records, and doc-comment systems like Rust's `///` and JSDoc's `@see`. The key insight from Ramsey: the minimum viable literate programming system is just cross-references and human-order presentation. See the [full specification](./llp/0000-linked-literate-programming.md#prior-art) for the complete discussion.
+- **[LLP 0000: Linked Literate Programming](./llp/0000-linked-literate-programming.md)** — The root specification: core concepts, extensions, conventions, and examples.
+- **[LLP 0001: Setting Up LLP in a New Repository](./llp/0001-greenfield-setup.md)** — Greenfield adoption guide.
+- **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.md)** — Existing-repo adoption guide.
+- **[LLP 0003: Prior Art and Influences](./llp/0003-prior-art.md)** — Survey of systems, papers, and ideas that inform LLP's design.
+- **[LLP 0004: Design Principles](./llp/0004-design-principles.md)** — Core principles behind LLP's design.
+- **Tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
 
 ## License
 

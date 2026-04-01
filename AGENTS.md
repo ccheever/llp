@@ -6,7 +6,7 @@ This project uses **Linked Literate Programming (LLP)** as defined in [LLP 0000]
 
 - LLP documents live in `llp/` and follow the numbering convention `NNNN-slug.md`.
 - When creating a new LLP, use the next available number and include the standard metadata header (`Type`, `Status`, `Systems`, `Author`, `Date`; optional `Role`, `Revised`, `Related`).
-- Standard types: **RFC**, **Plan**, **Explainer**, **Principle**, **Guide**, **Issue**, **Research**. You may define others if none of these fit.
+- Standard types: **RFC**, **Spec**, **Decision**, **Plan**, **Explainer**, **Principle**, **Guide**, **Issue**, **Research**. You may define others if none of these fit.
 - LLP documents are living documents. Update them when the system evolves. If an LLP is historical but still useful, move it under `llp/tombstones/` and mark it `Tombstoned`. Don't leave stale docs around unmarked.
 
 ## @ref annotations

@@ -45,7 +45,7 @@ Write an overview document covering:
 
 This document is the entry point for any agent or human encountering the codebase for the first time. It should be written to minimize the "cold start" problem — after reading LLP 0000, a reader should know where to look for anything.
 
-In most projects, LLP 0000 is an **Explainer** overview. If the project itself is still being designed or formalized, LLP 0000 can also be the governing **RFC**. In either case, it should carry `**Role:** Root`.
+LLP 0000 is typically an **Explainer** overview — the entry point for the corpus. It should carry `**Role:** Root`.
 
 ## 4. Write LLPs for key subsystems
 
@@ -79,7 +79,7 @@ This is faster than writing from scratch and catches more than either human or a
 
 Once LLP documents exist with stable section targets, annotate the code that implements them. This is the step that closes the loop — without references, the documents are just prose sitting in a directory.
 
-Those section targets can be either numbered sections or heading slugs. Use whichever fits the document best.
+Those section targets can be either heading slugs (`#token-rotation`) or numbered sections (`#3.2`). Heading slugs are preferred for most documents because they survive restructuring — see [LLP 0000#section-anchors-in-llp-documents](./0000-linked-literate-programming.md#section-anchors-in-llp-documents).
 
 ### Annotation strategy
 
@@ -103,7 +103,7 @@ This is high-value, low-effort. It immediately gives agents subsystem orientatio
 Identify functions that implement specific, non-obvious design decisions and add section-level references:
 
 ```python
-# @ref LLP 0005#3.2 — Token rotation on privilege change prevents session fixation
+# @ref LLP 0005#token-rotation — Token rotation on privilege change prevents session fixation
 def rotate_on_escalation(session: Session) -> Session:
     ...
 ```
@@ -169,8 +169,8 @@ For large codebases, adopt LLP incrementally rather than all at once:
 
 ## 9. Common pitfalls
 
+See [LLP 0000's adoption principles](./0000-linked-literate-programming.md#adoption-principles) for general guidance. The pitfalls specific to retrofitting:
+
 - **Treating it as a one-time project.** The initial setup is a sprint, but LLP is a practice. Documents and references need ongoing maintenance. If you set it up and walk away, it decays like any other documentation.
 - **Agent-generated documents without human review.** Agents are good at describing what code does but unreliable at inferring why. Every agent-drafted LLP needs a human pass for rationale accuracy.
-- **Over-annotating stable, obvious code.** A utility function that sorts a list doesn't need an LLP reference. Focus annotation effort on code where the design rationale is genuinely non-obvious.
-- **Delaying annotation until "the docs are done."** Module-level references provide value immediately, even before the LLP documents are complete. Start linking early.
-- **Trying to document the entire history.** Active LLPs represent current thinking. You don't need to reconstruct and document every historical decision — only the ones that still affect the code today. Preserve older context only when it is still useful, and mark it explicitly.
+- **Trying to document the entire history.** Active LLPs represent current thinking. You don't need to reconstruct every historical decision — only the ones that still affect the code today.
