@@ -36,9 +36,11 @@ Documents use zero-padded numbers: `LLP 0000` through `LLP 9999`. If a project e
 ```markdown
 # LLP 0003: Binary Protocol
 
-**Type:** Spec
+**Type:** RFC
 **Status:** Active
 **Systems:** Protocol, Reconciler
+**Author:** ...
+**Date:** YYYY-MM-DD
 
 ## 2. Message format
 
@@ -77,9 +79,13 @@ You don't need to annotate everything at once:
 2. **Reference as you go.** When implementing a design decision, add the `@ref` immediately — this is when the connection is freshest.
 3. **Keep references specific.** `@ref LLP 0005#3.2` is useful. `@ref LLP 0005` without a section is less so.
 
+LLP documents use a markdown metadata header directly below the title. LLP does not require YAML frontmatter.
+
 ## What's in this repo
 
-- **[LLP 0000: Linked Literate Programming](./0000-linked-literate-programming.md)** — The full specification.
+- **[LLP 0000: Linked Literate Programming](./llp/0000-linked-literate-programming.md)** — The root RFC and full specification.
+- **[LLP 0001: Setting Up LLP in a New Repository](./llp/0001-greenfield-setup.md)** — Greenfield adoption guide.
+- **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.md)** — Existing-repo adoption guide.
 - **Tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
 
 ## Reference syntax at a glance
@@ -93,7 +99,7 @@ You don't need to annotate everything at once:
 
 ## Prior art
 
-LLP draws on Knuth's literate programming, Ramsey's noweb (composable pipeline, minimal syntax), Architecture Decision Records, and doc-comment systems like Rust's `///` and JSDoc's `@see`. The key insight from Ramsey: the minimum viable literate programming system is just cross-references and human-order presentation. See the [full specification](./0000-linked-literate-programming.md#prior-art) for the complete discussion.
+LLP draws on Knuth's literate programming, Ramsey's noweb (composable pipeline, minimal syntax), Architecture Decision Records, and doc-comment systems like Rust's `///` and JSDoc's `@see`. The key insight from Ramsey: the minimum viable literate programming system is just cross-references and human-order presentation. See the [full specification](./llp/0000-linked-literate-programming.md#prior-art) for the complete discussion.
 
 ## License
 

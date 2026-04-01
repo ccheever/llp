@@ -1,6 +1,9 @@
 # LLP 0000: Linked Literate Programming
 
+**Type:** RFC
 **Status:** Draft
+**Systems:** LLP
+**Role:** Root
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
 
@@ -82,15 +85,40 @@ Directories are not numbered — they're just organizational buckets. The LLP nu
 
 When an LLP grows large enough that subtopics split into their own LLPs, the **lowest-numbered document** in a subdirectory is the root — it provides the overview and explains how the pieces fit together. This usually happens naturally (the root was written first, subtopics split off later). If it doesn't, documents can be renumbered to achieve it.
 
-The root document should indicate its status in frontmatter:
+The root document should indicate its role in the metadata header:
 
 ```markdown
 # LLP 0003: Binary Protocol
 
+**Type:** Explainer
+**Status:** Active
+**Systems:** Protocol
 **Role:** Root
+**Author:** ...
+**Date:** ...
 ```
 
 Not every subdirectory needs a root. A directory might just be a loose grouping of related LLPs with no hierarchy. That's fine — the convention only applies when there's a natural parent/child relationship.
+
+The root document is usually an **Explainer** that orients readers to the project or subsystem. In projects where the system itself is still being designed, the root document may also be the governing **RFC**. The important part is that LLP 0000 is the entry point and carries `**Role:** Root`.
+
+#### Metadata header
+
+Every LLP begins with a small metadata header directly below the title. LLP uses a plain markdown metadata block, not YAML frontmatter. This keeps the format easy to read in any markdown renderer and easy for lightweight tooling to parse line-by-line.
+
+Required fields:
+
+- `**Type:**` — the document kind
+- `**Status:**` — the document lifecycle state
+- `**Systems:**` — one or more systems, domains, or subsystems this LLP applies to
+- `**Author:**` — the primary author or editors
+- `**Date:**` — creation date in `YYYY-MM-DD`
+
+Optional fields:
+
+- `**Role:** Root` — marks an overview document that serves as the entry point for a project or subsystem
+- `**Revised:** YYYY-MM-DD` — last substantive revision date
+- `**Related:** LLP 0007, docs/foo.md` — nearby documents worth reading with this one
 
 #### Types
 
@@ -307,6 +335,15 @@ The validation tooling assists with this but does not enforce it.
 
 LLP documents themselves follow the same principle: when the system evolves, update the document. Don't leave stale design docs lying around — they actively mislead.
 
+### Agent policy
+
+Agents should be instructed to add `@ref` annotations when they implement or modify code that realizes a documented, non-obvious design decision. That instruction should come with two guardrails:
+
+1. Prefer specific references over broad, mechanical annotation.
+2. Update or remove existing references when the code no longer matches them.
+
+This keeps LLP self-reinforcing without turning it into a noisy checklist.
+
 ## Examples
 
 ### Rust — module-level + specific references
@@ -396,15 +433,13 @@ A reference is only worth adding if it's *accurate and specific*. A vague `@ref 
 
 1. **Should the checker run in CI from day one, or start as a local-only tool?** CI integration adds visibility but might create noise during the initial adoption period when few references exist.
 
-2. **Should AI agents be instructed to add `@ref` annotations when writing code?** This would bootstrap adoption but might lead to low-quality references if the agent is mechanically annotating everything.
+2. **Is `@ref` the right prefix, or would something shorter (`@see`) or longer (`@llp-ref`) be better?** `@ref` is concise and broadly applicable. `@see` collides with JSDoc.
 
-3. **Is `@ref` the right prefix, or would something shorter (`@see`) or longer (`@llp-ref`) be better?** `@ref` is concise and broadly applicable. `@see` collides with JSDoc.
+3. **Should the rationale-order view be the default for annotated source, or should file-order be the default?** Rationale-order is more useful for understanding but less useful for locating specific code.
 
-4. **Should the rationale-order view be the default for annotated source, or should file-order be the default?** Rationale-order is more useful for understanding but less useful for locating specific code.
+4. **How should references interact with code that spans multiple files?** A cross-cutting concern touches many files. Should there be a way to declare "all files in this directory implement this LLP" without annotating each one? (A `.refs` manifest file, perhaps.)
 
-5. **How should references interact with code that spans multiple files?** A cross-cutting concern touches many files. Should there be a way to declare "all files in this directory implement this LLP" without annotating each one? (A `.refs` manifest file, perhaps.)
-
-6. **Should references carry metadata about _why_ they exist?** For example, distinguishing "this code maintains a documented invariant" from "this code implements a specific decision" from "this code is constrained by a documented requirement." See the discussion in the next section.
+5. **Should references carry metadata about _why_ they exist?** For example, distinguishing "this code maintains a documented invariant" from "this code implements a specific decision" from "this code is constrained by a documented requirement." See the discussion in the next section.
 
 ## Deferred: altitude tags
 
