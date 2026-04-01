@@ -79,7 +79,7 @@ This is faster than writing from scratch and catches more than either human or a
 
 Once LLP documents exist with stable section targets, annotate the code that implements them. This is the step that closes the loop — without references, the documents are just prose sitting in a directory.
 
-Those section targets can be either heading slugs (`#token-rotation`) or numbered sections (`#3.2`). Heading slugs are preferred for most documents because they survive restructuring — see [LLP 0000#section-anchors-in-llp-documents](./0000-linked-literate-programming.md#section-anchors-in-llp-documents).
+Those section targets can be either heading slugs (`#token-rotation`) or numbered sections (`#3.2`). Heading slugs are preferred for most documents because they survive restructuring — see [LLP 0000#section-anchors-in-llp-documents](./0000-linked-literate-programming.explainer.md#section-anchors-in-llp-documents).
 
 ### Annotation strategy
 
@@ -169,7 +169,7 @@ For large codebases, adopt LLP incrementally rather than all at once:
 
 ## 9. Common pitfalls
 
-See [LLP 0000's adoption principles](./0000-linked-literate-programming.md#adoption-principles) for general guidance. The pitfalls specific to retrofitting:
+See [LLP 0000's adoption principles](./0000-linked-literate-programming.explainer.md#adoption-principles) for general guidance. The pitfalls specific to retrofitting:
 
 - **Treating it as a one-time project.** The initial setup is a sprint, but LLP is a practice. Documents and references need ongoing maintenance. If you set it up and walk away, it decays like any other documentation.
 - **Agent-generated documents without human review.** Agents are good at describing what code does but unreliable at inferring why. Every agent-drafted LLP needs a human pass for rationale accuracy.

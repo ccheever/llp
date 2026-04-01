@@ -69,7 +69,7 @@ This is the mechanism that makes LLP self-reinforcing: agents that are told abou
 
 ## 6. Don't over-invest upfront
 
-See [LLP 0000's adoption principles](./0000-linked-literate-programming.md#adoption-principles) for the full list. The key pitfalls for greenfield projects:
+See [LLP 0000's adoption principles](./0000-linked-literate-programming.explainer.md#adoption-principles) for the full list. The key pitfalls for greenfield projects:
 
 - **Writing too many documents before there's code.** Documents without implementing code are speculation. Write just enough to capture decisions you've actually made.
 - **Annotating everything.** Early code is volatile. Wait until a module's design stabilizes before annotating heavily.

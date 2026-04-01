@@ -142,7 +142,7 @@ LLP documents can take many forms. Rather than splitting them across directories
 # LLP NNNN: Title
 
 **Type:** RFC | Spec | Decision | Plan | Explainer | Principle | Guide | Issue | Research
-**Status:** Draft | Active | Superseded | Tombstoned
+**Status:** Draft | Review | Accepted | Active | Superseded | Tombstoned
 **Systems:** Auth, Protocol, Reconciler, ...
 **Author:** ...
 **Date:** ...
@@ -171,9 +171,13 @@ The following are the **standard statuses**:
 | Status | What it means |
 |--------|---------------|
 | **Draft** | In progress and not yet the settled guidance |
+| **Review** | Draft is complete and undergoing multi-model review (see [LLP 0005](./0005-rfc-process.guide.md)) |
+| **Accepted** | Approved for implementation; design is stable but code isn't written yet |
 | **Active** | Current guidance |
 | **Superseded** | Replaced by newer guidance but still kept in-tree for migration or compatibility context |
 | **Tombstoned** | Historical context kept under `llp/tombstones/`; no longer current guidance |
+
+`Review` and `Accepted` are primarily used by proposal-type documents (RFCs, Specs, Plans) that go through a formal review process before implementation. See [LLP 0005](./0005-rfc-process.guide.md) for the full authoring and review workflow. Other document types typically move directly from `Draft` to `Active`.
 
 A project might also define its own types — for example, **Postmortem** (an incident retrospective) or anything else that fits the project's needs. The standard types are conventions, not constraints.
 
@@ -619,7 +623,7 @@ Converting an existing codebase to LLP is tractable if done incrementally:
 
 4. **Agent-assisted annotation sprints.** For complex subsystems, an agent can be tasked: "Read LLP 0074 and `src/semantics.rs`. Identify functions that implement specific sections and propose `@ref` annotations." The agent reads both the LLP and the code, proposes references, and a human reviews them.
 
-See [LLP 0001](./0001-greenfield-setup.md) for detailed greenfield setup steps and [LLP 0002](./0002-retrofitting-llp.md) for a detailed retrofit guide.
+See [LLP 0001](./0001-greenfield-setup.guide.md) for detailed greenfield setup steps and [LLP 0002](./0002-retrofitting-llp.guide.md) for a detailed retrofit guide.
 
 ### Adoption principles
 
@@ -650,7 +654,7 @@ A reference is only worth adding if it's *accurate and specific*. A vague `@ref 
 
 ## Prior art
 
-LLP draws on a long lineage of literate programming, design documentation, code traceability, and knowledge management systems. A comprehensive survey is in [LLP 0003](./0003-prior-art.md); this section highlights the most direct influences.
+LLP draws on a long lineage of literate programming, design documentation, code traceability, and knowledge management systems. A comprehensive survey is in [LLP 0003](./0003-prior-art.research.md); this section highlights the most direct influences.
 
 ### Literate programming
 

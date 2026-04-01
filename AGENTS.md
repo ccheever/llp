@@ -1,12 +1,13 @@
 # Agent Instructions
 
-This project uses **Linked Literate Programming (LLP)** as defined in [LLP 0000](./llp/0000-linked-literate-programming.md). Read that document before making substantial changes.
+This project uses **Linked Literate Programming (LLP)** as defined in [LLP 0000](./llp/0000-linked-literate-programming.explainer.md). Read that document before making substantial changes.
 
 ## LLP documents
 
-- LLP documents live in `llp/` and follow the numbering convention `NNNN-slug.md`.
+- LLP documents live in `llp/` and follow the numbering convention `NNNN-slug.type.md` (e.g. `0001-foo.guide.md`, `0003-bar.research.md`).
 - When creating a new LLP, use the next available number and include the standard metadata header (`Type`, `Status`, `Systems`, `Author`, `Date`; optional `Role`, `Revised`, `Related`).
 - Standard types: **RFC**, **Spec**, **Decision**, **Plan**, **Explainer**, **Principle**, **Guide**, **Issue**, **Research**. You may define others if none of these fit.
+- RFCs (and optionally Specs/Plans) follow the multi-model review process defined in [LLP 0005](./llp/0005-rfc-process.guide.md). They use the expanded lifecycle: `Draft` -> `Review` -> `Accepted` -> `Active`.
 - LLP documents are living documents. Update them when the system evolves. If an LLP is historical but still useful, move it under `llp/tombstones/` and mark it `Tombstoned`. Don't leave stale docs around unmarked.
 
 ## @ref annotations

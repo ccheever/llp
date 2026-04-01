@@ -94,11 +94,11 @@ ref-check extract src/ | ref-check resolve
 
 ## What's in this repo
 
-- **[LLP 0000: Linked Literate Programming](./llp/0000-linked-literate-programming.md)** — The root specification: core concepts, extensions, conventions, and examples.
-- **[LLP 0001: Setting Up LLP in a New Repository](./llp/0001-greenfield-setup.md)** — Greenfield adoption guide.
-- **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.md)** — Existing-repo adoption guide.
-- **[LLP 0003: Prior Art and Influences](./llp/0003-prior-art.md)** — Survey of systems, papers, and ideas that inform LLP's design.
-- **[LLP 0004: Design Principles](./llp/0004-design-principles.md)** — Core principles behind LLP's design.
+- **[LLP 0000: Linked Literate Programming](./llp/0000-linked-literate-programming.explainer.md)** — The root specification: core concepts, extensions, conventions, and examples.
+- **[LLP 0001: Setting Up LLP in a New Repository](./llp/0001-greenfield-setup.guide.md)** — Greenfield adoption guide.
+- **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.guide.md)** — Existing-repo adoption guide.
+- **[LLP 0003: Prior Art and Influences](./llp/0003-prior-art.research.md)** — Survey of systems, papers, and ideas that inform LLP's design.
+- **[LLP 0004: Design Principles](./llp/0004-design-principles.principles.md)** — Core principles behind LLP's design.
 - **Tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
 
 ## License
