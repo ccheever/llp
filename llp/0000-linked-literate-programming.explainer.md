@@ -73,7 +73,7 @@ LLP documents are designed to be read, written, and modified by both humans and 
 
 #### Numbering
 
-LLP documents are identified by zero-padded numbers: `LLP 0000` through `LLP 9999`. Filenames follow the pattern `NNNN-slug.md` (e.g., `0042-authentication.md`).
+LLP documents are identified by zero-padded numbers: `LLP 0000` through `LLP 9999`. Filenames follow the pattern `NNNN-slug.type.md`, where `type` is the lowercased document type (e.g., `0042-authentication.rfc.md`, `0007-error-handling.guide.md`). Encoding the type in the filename makes it visible in directory listings, tab-completion, and diffs without opening the file.
 
 #### Filesystem organization
 
@@ -81,16 +81,16 @@ LLP documents live in an `llp/` directory. They can be flat or grouped into subd
 
 ```
 llp/
-  0001-project-overview.md
+  0001-project-overview.explainer.md
   protocol/
-    0003-binary-protocol.md
-    0015-message-compression.md
-    0028-header-format.md
+    0003-binary-protocol.explainer.md
+    0015-message-compression.rfc.md
+    0028-header-format.spec.md
   auth/
-    0017-session-management.md
-    0042-token-rotation.md
+    0017-session-management.guide.md
+    0042-token-rotation.rfc.md
   tombstones/
-    0009-legacy-sync-design.md
+    0009-legacy-sync-design.decision.md
 ```
 
 Directories are not numbered — they're just organizational buckets. The LLP number is the identity; the directory is just storage. `@ref LLP 0003#focus-trapping` doesn't encode the directory path, so documents can be reorganized freely without breaking references.
