@@ -10,6 +10,26 @@
 
 This document describes the process of bootstrapping LLP in a new project from day one — creating the directory structure, writing initial documents, configuring agent instructions, and establishing habits that keep the system useful as the codebase grows.
 
+## 0. Optional: bootstrap with `llp init`
+
+For the common case, you can scaffold the initial LLP files with [LLP 0007's](./0007-llp-init-script.rfc.md) bootstrap script instead of creating them manually:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ccheever/llp/main/scripts/llp-init.sh | sh
+```
+
+Or run a checked-out copy of `scripts/llp-init.sh` from the root of the repository you are bootstrapping.
+
+The script creates:
+
+- `llp/`
+- `llp/0000-<project-name>.explainer.md`
+- `llp/tombstones/.gitkeep`
+- `AGENTS.md`
+- `CLAUDE.md -> AGENTS.md` when safe to create
+
+You still need to fill in the generated LLP 0000 and write the real design documents that matter for your project. The rest of this guide explains the manual process and the habits the script cannot automate.
+
 ## 1. Create the LLP directory
 
 Create an `llp/` directory. Flat is fine to start. Subdirectories can be added later when there are enough documents in a domain to warrant grouping.
@@ -58,7 +78,7 @@ export function appendEvent(log: EventLog, event: Event): EventLog {
 
 ## 5. Configure agent instructions
 
-Create an `AGENTS.md` (or `CLAUDE.md`, or your agent's equivalent) that tells agents about LLP:
+Create an `AGENTS.md` (or your agent's equivalent) that tells agents about LLP. When a tool expects `CLAUDE.md`, symlink it to `AGENTS.md` when safe:
 
 - Where LLP documents live
 - To read relevant LLPs before making changes in areas they cover

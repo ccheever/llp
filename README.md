@@ -47,6 +47,16 @@ A generated *story* about the file, organized by design intent rather than langu
 
 ## Quick start
 
+**Fast path:** from the root of the repository you want to bootstrap, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ccheever/llp/main/scripts/llp-init.sh | sh
+```
+
+Or run a checked-out copy of [`scripts/llp-init.sh`](./scripts/llp-init.sh) from that repository root.
+
+The script creates `llp/`, a template `LLP 0000`, `AGENTS.md`, and `CLAUDE.md -> AGENTS.md`. It is primarily for new repositories; existing repos still need the retrofit workflow in [LLP 0002](./llp/0002-retrofitting-llp.guide.md).
+
 **1. Create an `llp/` directory and write your first LLP document:**
 
 ```markdown
@@ -99,7 +109,8 @@ ref-check extract src/ | ref-check resolve
 - **[LLP 0002: Retrofitting LLP into an Existing Codebase](./llp/0002-retrofitting-llp.guide.md)** — Existing-repo adoption guide.
 - **[LLP 0003: Prior Art and Influences](./llp/0003-prior-art.research.md)** — Survey of systems, papers, and ideas that inform LLP's design.
 - **[LLP 0004: Design Principles](./llp/0004-design-principles.principles.md)** — Core principles behind LLP's design.
-- **Tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
+- **[`scripts/llp-init.sh`](./scripts/llp-init.sh)** — Bootstrap script for creating LLP scaffolding in a new repository.
+- **Additional tooling** (planned) — A pipeline of composable tools for extracting, validating, and indexing `@ref` annotations.
 
 ## License
 

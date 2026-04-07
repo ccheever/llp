@@ -12,6 +12,16 @@ This document describes the process of adopting LLP in a substantial existing re
 
 This is a bigger undertaking than greenfield setup. It involves reading and understanding the existing codebase, identifying the design decisions embedded in it, writing documents that capture those decisions, and annotating code with references. Agents are essential to making this tractable at scale.
 
+## 0. Optional: scaffold before you retrofit
+
+You can use [LLP 0007's](./0007-llp-init-script.rfc.md) bootstrap script as a first step to create the directory structure, placeholder LLP 0000, and agent instruction files:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ccheever/llp/main/scripts/llp-init.sh | sh
+```
+
+Treat this as scaffolding only. The generated LLP 0000 is just a placeholder, and the script does **not** read the codebase, identify subsystems, or recover existing design rationale. You still need the retrofit workflow in the rest of this document.
+
 ## 1. Understand the codebase first
 
 Before writing any LLP documents, develop a map of the system. This means reading:
@@ -134,13 +144,15 @@ If the project has existing design documents, ADRs, RFCs, or wiki pages:
 
 ## 7. Configure agent instructions
 
-Add an `AGENTS.md` (or `CLAUDE.md`) that tells agents:
+Add an `AGENTS.md` that tells agents:
 
 - LLP documents exist and where to find them
 - To read relevant LLPs before modifying subsystems they cover
 - To add `@ref` annotations when implementing documented decisions
 - To update LLP documents when the design they describe changes
 - To flag when code contradicts its referenced LLP section
+
+If a tool expects `CLAUDE.md`, symlink it to `AGENTS.md` when safe rather than maintaining two divergent copies by default.
 
 ## 8. Phased rollout
 

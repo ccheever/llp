@@ -1,7 +1,7 @@
 # LLP 0007: `llp init` Bootstrap Script
 
 **Type:** RFC
-**Status:** Draft
+**Status:** Accepted
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-06
@@ -179,19 +179,15 @@ The script could invoke an AI to read the codebase and generate a more complete 
 
 The script should live in this repo (`scripts/llp-init.sh`) as the source of truth, and optionally be published to npm or as a GitHub release artifact for easier access. Keeping it in-repo means it evolves with the spec.
 
-## Implementation plan
+## Implementation status
 
-1. **Write the shell script** (`scripts/llp-init.sh`). Core logic: detect project name, create directories, generate template files, manage `AGENTS.md`, and create or preserve `CLAUDE.md` appropriately. Test on macOS and Linux.
-2. **Test on real repos and instruction-file layouts.** Run the script on 3-5 repos of different types (Node, Python, Rust, empty) and verify behavior for: no agent files, `AGENTS.md` only, `CLAUDE.md` only, and both files present as separate regular files.
-3. **Add to this repo.** Commit the script, update LLP 0001 to reference it as the quick-start path, and update LLP 0002 to describe it as an optional scaffolding step rather than a retrofit solution.
-4. **Optional: npm wrapper.** Publish a thin `llp-init` npm package that downloads and runs the shell script. This enables `npx llp-init` without the user needing to clone this repo.
+1. **Shell script implemented.** `scripts/llp-init.sh` is the source-of-truth bootstrap script. It creates `llp/`, a template LLP 0000, the managed LLP instruction block in `AGENTS.md`, and `CLAUDE.md -> AGENTS.md` when safe.
+2. **Docs updated.** `README.md`, LLP 0001, and LLP 0002 now point to the script and describe its role as a greenfield bootstrapper rather than a retrofit solution.
+3. **Manual verification completed.** The script has been exercised in temporary git repositories for the main file-layout cases: empty repo, `AGENTS.md` only, `CLAUDE.md` only, diverged `AGENTS.md` and `CLAUDE.md`, rerun idempotency, `--dry-run`, and missing `git config user.name`.
+4. **Optional wrapper still open.** A thin npm wrapper remains optional future work if `npx llp-init` becomes a primary distribution path.
 
 ## Open questions
 
 1. **Should the script also generate a starter LLP 0001?** A template for the first design decision (empty, with the right metadata) might lower the barrier further. Or it might just be noise that the user deletes.
 
-2. **Should the CLAUDE.md content reference the LLP spec by URL or be self-contained?** A URL keeps instructions short but adds an external dependency. Self-contained instructions are longer but work offline. The current draft leans self-contained since agent instruction files should work without network access.
-
-3. **How strong should the non-greenfield warning be?** Warn-and-continue keeps the tool flexible for retrofit scaffolding. Requiring an explicit `--force` would reduce accidental misuse but adds friction to the common "just scaffold the files" case.
-
-4. **Distribution: what's the right primary channel?** Options: `npx`, `brew`, `curl | sh`, GitHub Releases binary, or just "copy the script." The answer probably depends on where LLP adoption concentrates.
+2. **Distribution: what's the right primary channel?** Options: `npx`, `brew`, `curl | sh`, GitHub Releases binary, or just "copy the script." The answer probably depends on where LLP adoption concentrates.
