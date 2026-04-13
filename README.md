@@ -38,36 +38,17 @@ The `@ref` comment is a machine-readable link. An agent reviewing this function 
 
 ## What this buys you
 
-- **Humans review less code, and get better results.** Review shifts from "what is this doing?" to "does this still match the decisions in the docs?" — and most of that check can be done by an agent following `@ref` links.
-- **Decisions are versioned, not ambient.** When you change your mind, you update the document. There is no lingering memory of the old decision drifting through the AI's next suggestions.
-- **Plans get refined where refinement is cheap.** Markdown is the right medium for iterating on a design. LLP makes the planning artifact first-class instead of a throwaway.
-- **Context transfers.** A new agent — or a new engineer — picks up the project by reading the LLP documents, not by absorbing tribal knowledge.
+**For agents:**
 
-## The killer feature: rationale-order views
+- **More correct code.** An agent writing a new function can follow `@ref` links to the exact constraints it needs to satisfy, instead of guessing from surrounding code.
+- **Consistency with the rest of the codebase.** Decisions recorded once in an LLP document apply everywhere they're referenced. A new feature written a year later lands in the same shape as the old ones.
+- **Faster, more efficient review.** Review shifts from "what is this doing?" to "does this still match the referenced decisions?" — a check agents can do quickly and reliably along the `@ref` edges.
 
-Because `@ref` annotations link code to design intent, LLP can generate literate-programming-style views of a file organized by *why* rather than by compiler order:
+**For humans:**
 
-```
-━━━ LLP 0074#implicit-semantics ━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Components carry default roles without developer opt-in.
-
-  pub fn infer_role(node: &RenderNode) -> Option<SemanticRole> { ... }
-  pub fn default_label(node: &RenderNode) -> Option<String> { ... }
-
-━━━ LLP 0074#focus-management ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Focus trapping, restoration, and custom focus order.
-
-  pub fn trap_focus_in_modal(node: NodeId) -> Result<()> { ... }
-  pub fn restore_focus(saved: FocusState) -> Result<()> { ... }
-
-━━━ Unreferenced ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  fn internal_helper() { ... }
-```
-
-A generated *story* about the file, organized by design intent rather than language syntax — the promise of literate programming without the maintenance burden. (Tooling for this is planned, not yet implemented.)
+- **A well-documented system, by construction.** The documentation *is* the source of truth the agents work from, so it can't drift into stale wiki territory without the code starting to drift with it.
+- **A malleable surface made of English.** Want to change how the system behaves? Edit the markdown. The next thing an agent writes reflects the new intent. You're steering the codebase through prose, which is faster and more natural to read, write, and argue about than code.
+- **Versioned decisions, not ambient memory.** When you change your mind, you update the document. No lingering echoes of old decisions drifting through the AI's next suggestions.
 
 ## Quick start
 
