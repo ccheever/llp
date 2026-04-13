@@ -88,19 +88,19 @@ export function handleWidgetRequest(req: Request): Response {
 /ref-check src/
 ```
 
-See the [Claude Code skills](#claude-code-skills) section below for how to install and use the validation and review tooling.
+See the [Skills](#skills) section below for how to install and use the validation and review tooling.
 
-## Claude Code skills
+## Skills
 
-This repo ships a handful of Claude Code skills for working with LLP documents and references. They are plain markdown files under [`skills/`](./skills/) and can be installed into Claude Code as described in [Anthropic's skills documentation](https://docs.claude.com/en/docs/claude-code/skills).
+This repo ships a handful of skills for working with LLP documents and references. They are plain markdown directories under [`skills/`](./skills/), each centered on a `SKILL.md` file. The format is broader than any one harness: Claude Code can consume them directly, and other agent tools can adopt the same artifact shape.
 
-### Installing
+### Using with Claude Code
 
 The skills are self-contained — each is a directory under `skills/` with a `SKILL.md` file. To install one into Claude Code:
 
 ```bash
 # Copy the skill directory into your Claude Code skills location
-cp -r skills/llp-create ~/.claude/skills/
+cp -r skills/llp-init ~/.claude/skills/
 ```
 
 (Or install all of them at once by copying the full `skills/` directory.) After installation, invoke them with the slash commands shown below.
@@ -109,6 +109,8 @@ cp -r skills/llp-create ~/.claude/skills/
 
 | Skill | Slash command | What it does |
 |-------|---------------|-------------|
+| [`llp-init`](./skills/llp-init/SKILL.md) | `/llp-init` | Add LLP to a new repository. Scaffolds the initial `llp/` tree, drafts `LLP 0000`, and adds agent instructions so the repo starts with the core LLP conventions in place. |
+| [`llp-init-retrofit`](./skills/llp-init-retrofit/SKILL.md) | `/llp-init-retrofit` | Add LLP to an existing repository. Surveys the current codebase and docs, drafts the root LLP, proposes initial subsystem LLPs, and lays out a phased annotation and adoption plan. |
 | [`llp-create`](./skills/llp-create/SKILL.md) | `/llp-create <title>` | Create a new LLP document. Scans the existing `llp/` tree, picks the next available number, generates the filename and slug, and scaffolds the metadata header. Asks for type and systems tags if not clear from context. |
 | [`llp-review`](./skills/llp-review/SKILL.md) | `/llp-review <llp>` | Review an LLP document using a standard prompt that asks about strengths, concerns, missing considerations, and open questions. Saves the review as a dated artifact under `notes-archive/llp-reviews/` so reviews accumulate over time. |
 | [`llp-list`](./skills/llp-list/SKILL.md) | `/llp-list [status\|type\|system]` | List LLPs grouped by status or filtered by type, system, or author. Useful for "what's still in draft?" or "what LLPs cover the auth system?" |
@@ -119,7 +121,7 @@ Every skill's `SKILL.md` is readable on its own — it describes the command sur
 
 ### Writing new skills
 
-A Claude Code skill is just a directory with a `SKILL.md` file that has YAML frontmatter and markdown instructions. To add a new skill:
+A skill in this format is just a directory with a `SKILL.md` file that has YAML frontmatter and markdown instructions. Claude Code can use these directly, and other agent tools can adopt the same structure. To add a new skill:
 
 1. Create `skills/your-skill-name/SKILL.md`.
 2. Add frontmatter:
@@ -130,7 +132,7 @@ A Claude Code skill is just a directory with a `SKILL.md` file that has YAML fro
    ---
    ```
 3. Write the instructions that Claude should follow when the skill is invoked.
-4. Install it locally to test: `cp -r skills/your-skill-name ~/.claude/skills/`
+4. If testing with Claude Code, install it locally: `cp -r skills/your-skill-name ~/.claude/skills/`
 
 The existing skills in this repo are examples of the structure. Keep descriptions precise — they are the signal Claude uses to decide whether to invoke the skill.
 
@@ -142,7 +144,7 @@ The existing skills in this repo are examples of the structure. Keep description
 - **Setting up a new project with LLP?** Read [LLP 0001: Greenfield setup](./llp/0001-greenfield-setup.guide.md).
 - **Adding LLP to an existing codebase?** Read [LLP 0002: Retrofitting LLP](./llp/0002-retrofitting-llp.guide.md).
 - **Interested in the thinking behind LLP?** Read [LLP 0003: Prior art](./llp/0003-prior-art.research.md) and [LLP 0004: Design principles](./llp/0004-design-principles.principles.md).
-- **Want to start using the tooling?** Install the [Claude Code skills](#claude-code-skills) above and run `/llp-list` in a project that already has LLPs.
+- **Want to start using the tooling?** Install the [Skills](#skills) above and run `/llp-list` in a project that already has LLPs.
 
 All LLP documents live under [`llp/`](./llp/). All skills live under [`skills/`](./skills/).
 
