@@ -113,7 +113,7 @@ cp -r skills/llp-create ~/.claude/skills/
 | [`llp-review`](./skills/llp-review/SKILL.md) | `/llp-review <llp>` | Review an LLP document using a standard prompt that asks about strengths, concerns, missing considerations, and open questions. Saves the review as a dated artifact under `notes-archive/llp-reviews/` so reviews accumulate over time. |
 | [`llp-list`](./skills/llp-list/SKILL.md) | `/llp-list [status\|type\|system]` | List LLPs grouped by status or filtered by type, system, or author. Useful for "what's still in draft?" or "what LLPs cover the auth system?" |
 | [`ref-check`](./skills/ref-check/SKILL.md) | `/ref-check [path]` | Extract and validate `@ref` annotations in a codebase. Reports broken references (to LLPs or sections that don't exist), warnings (references to tombstoned or superseded LLPs), and hints (gloss text that may be out of date). The foundational tool for everything downstream. |
-| [`ref-story`](./skills/ref-story/SKILL.md) | `/ref-story <file>` | Generate a rationale-order view of a source file — the killer feature described above. Groups code constructs by the LLP sections that explain them, interleaves the prose from those sections, and produces a literate-programming-style narrative of the file. |
+| [`ref-story`](./skills/ref-story/SKILL.md) | `/ref-story <file>` | Generate a rationale-order view of a source file. Groups code constructs by the LLP sections that explain them, interleaves the prose from those sections, and produces a literate-programming-style narrative of the file. |
 
 Every skill's `SKILL.md` is readable on its own — it describes the command surface, the workflow, and the edge cases the skill handles.
 
