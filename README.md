@@ -1,21 +1,40 @@
 # Linked Literate Programming (LLP)
 
-A lightweight system for linking code to its design rationale through machine-readable references. Code carries thin pointers — standardized `@ref` comments that reference specific sections of LLP documents. Agents and humans follow these links to retrieve deeper context on demand.
+**Keep humans in markdown. Let AI write and review the code.**
+
+LLP is infrastructure for codebases where humans work at the level they're good at — English prose, design decisions, principles, tradeoffs — and AI handles the code and most of the review. It's a structured way to give AI agents the context they need so that what they produce stays consistent with what the humans (and other AIs) behind the project actually want.
+
+## The problem
+
+Living codebases carry an enormous amount of implicit knowledge: the decisions, principles, and constraints behind why things are the way they are. Today that knowledge lives in Notion pages, Google Docs, Slack threads, half-finished wiki articles, and the heads of senior engineers. When an AI agent writes new code, it can't see any of it.
+
+Some AI harnesses address this with "memory" — ambient notes the agent accumulates over time. That helps, but it's unstructured and hard to curate. When you change your mind about a decision, remnants of the old one linger in memory and keep influencing new code. You can't cleanly version it, review it, or hand it to someone else.
+
+LLP is the structured, explicit version of that idea. Decisions live in markdown documents in the repo. They are versioned like code. When a decision changes, you update the document, and the next thing the AI writes reflects the new intent — not an echo of the old one.
 
 ## The core idea
+
+Humans stay in markdown. That's where they read fastest, argue most clearly, and make the decisions that actually matter. A plan refined a few times at the markdown level almost always produces better software — and less slop — than the same plan worked out directly in code.
+
+The code itself, and most of the review, can be left to AI. The catch is that the AI needs to know *why* the code exists in the form it does. LLP gives it that, via thin pointers from code to the exact section of the exact document that explains a given decision:
 
 ```rust
 // @ref LLP 0042#token-strategy — Session tokens must be rotated on privilege escalation
 pub fn escalate_privilege(session: &Session) -> Result<Session> {
 ```
 
-The `@ref` comment is a machine-readable pointer to a specific section of an LLP document. It tells both humans and AI agents exactly where to find the rationale — without embedding a paragraph of explanation in the source file.
+The `@ref` comment is a machine-readable link. An agent reviewing this function can follow it to the rationale and check whether a proposed change still satisfies the constraint. A human can follow it too — but the point is that they mostly shouldn't have to.
 
-**Rule of thumb:** if an AI agent might "simplify" this code in a way that would break the design intent, it needs a reference.
+## What this buys you
+
+- **Humans review less code, and get better results.** Review shifts from "what is this doing?" to "does this still match the decisions in the docs?" — and most of that check can be done by an agent following `@ref` links.
+- **Decisions are versioned, not ambient.** When you change your mind, you update the document. There is no lingering memory of the old decision drifting through the AI's next suggestions.
+- **Plans get refined where refinement is cheap.** Markdown is the right medium for iterating on a design. LLP makes the planning artifact first-class instead of a throwaway.
+- **Context transfers.** A new agent — or a new engineer — picks up the project by reading the LLP documents, not by absorbing tribal knowledge.
 
 ## The killer feature: rationale-order views
 
-Given `@ref` annotations, LLP can generate literate programming views organized by design intent rather than compiler order — the promise of literate programming without the maintenance burden:
+Because `@ref` annotations link code to design intent, LLP can generate literate-programming-style views of a file organized by *why* rather than by compiler order:
 
 ```
 ━━━ LLP 0074#implicit-semantics ━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -37,13 +56,7 @@ Given `@ref` annotations, LLP can generate literate programming views organized 
   fn internal_helper() { ... }
 ```
 
-A generated *story* about the file, organized by design intent rather than language syntax. (Tooling for this is planned, not yet implemented.)
-
-## Why
-
-- **AI agents need context but comments are a poor vehicle.** They go stale, long ones waste tokens, and they can't express structure.
-- **Design rationale exists but code doesn't point to it.** Projects accumulate knowledge in documents — but code references are ad hoc and unvalidatable.
-- **Humans reviewing AI-generated code need breadcrumbs.** A reference to a specific document section shifts review from "what is this doing?" to "does this satisfy the constraint?"
+A generated *story* about the file, organized by design intent rather than language syntax — the promise of literate programming without the maintenance burden. (Tooling for this is planned, not yet implemented.)
 
 ## Quick start
 
@@ -68,7 +81,7 @@ What the project does and why.
 Major subsystems and how they relate.
 ```
 
-**2. Add references to your code:**
+**2. Add references from your code to the decisions behind it:**
 
 ```typescript
 // @ref LLP 0000#architecture — Widget service boundary
@@ -76,6 +89,8 @@ export function handleWidgetRequest(req: Request): Response {
   // ...
 }
 ```
+
+**Rule of thumb:** if an AI agent might "simplify" this code in a way that would break the design intent, it needs a reference.
 
 **3. Validate references** (planned tooling):
 
