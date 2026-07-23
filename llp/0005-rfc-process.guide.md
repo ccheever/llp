@@ -33,7 +33,7 @@ Rules:
 
 - New RFCs start as `Draft`. Update `**Revised:**` on substantive changes.
 - The author decides when a document is done being reviewed and moves it to `Accepted`. Reviews are inputs, never approvals — no reviewer, human or model, accepts on the author's behalf, and no tool changes `Status` unilaterally.
-- An accepted RFC becomes `Active` when the implementation is done and merged.
+- An accepted RFC becomes `Active` when the implementation is done and merged. This is a factual completion transition, not an author-authority one: whoever completes and delivers the implementation may apply it, stating the claim visibly (e.g. `llp-ship` includes it in the delivered candidate as a called-out commit — [LLP 0010 §3](./0010-skill-install-super-refine-ship.rfc.md#3-llp-ship)).
 - Once accepted, an RFC's design section shouldn't materially change. If the design evolves during implementation, write a new LLP or add a dated addendum (`## Addendum (YYYY-MM-DD): …`).
 - If a later RFC replaces this one, set `Superseded` and add `**Superseded by:** LLP NNNN`.
 

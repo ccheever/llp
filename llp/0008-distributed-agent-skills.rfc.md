@@ -10,7 +10,7 @@
 
 ## Summary
 
-LLP ships a small set of first-party **agent skills** — plain-markdown `SKILL.md` files under `skills/` — that make recurring LLP workflows repeatable across projects and agent runtimes. Five skills cover the loop: `llp-orient` (load governing context before coding), `llp-create` (author one LLP), `llp-review` (run the LLP 0005 loop honestly), `llp-adopt` (bring LLP to any repo, scaffold or retrofit), and `llp-maintain` (drift, refs, provenance, retirement — propose, never apply).
+LLP ships a small set of first-party **agent skills** — plain-markdown `SKILL.md` files under `skills/` — that make recurring LLP workflows repeatable across projects and agent runtimes. A **core** of five covers the loop: `llp-orient` (load governing context before coding), `llp-create` (author one LLP), `llp-review` (run the LLP 0005 loop honestly), `llp-adopt` (bring LLP to any repo — and install/update the skills themselves), and `llp-maintain` (drift, refs, provenance, retirement — propose, never apply). Two opt-in flags add `llp-super-refine` (dual-family refine-until-ready) and `llp-ship` (tasks done end to end) — see [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md).
 
 Two decisions shape the design:
 
@@ -51,6 +51,7 @@ Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Reci
 | **`llp-adopt`** | "bring LLP to this repo" / "update the LLP skills" | `scaffold`: structure + root doc; `retrofit`: comprehend, draft, migrate, propose `@ref`s; `install`/`update`: pinned skill copies with receipts (LLP 0010 §1) | new files and managed blocks only; generated docs stay `Draft` with provenance tags; receipts, never clobbered forks |
 | **`llp-maintain`** | pre-PR · audit · reconcile · retire | detect code/doc drift, validate refs interactively, draft reconciliations | findings and proposals; **never applies** |
 | **`llp-super-refine`** (`review-plus`) | author invokes the dual-family refine loop | orchestrate mutually-blind reviews from two model families per round, revise between rounds, reconcile verdicts | verdict-lined, hash-stamped artifacts; bounded rounds; escalates to the author (LLP 0010 §2) |
+| **`llp-ship`** (`delivery`) | a human hands over tasks to be done end to end | plan lanes, implement, integrate, verify + review the exact integrated SHA, deliver per repo policy | run ledger + report; SHA-bound gates; never force-pushes, never deletes recoverable work (LLP 0010 §3) |
 
 **Modes instead of more skills.** `llp-adopt` spans one spectrum (how much existing design knowledge there is to mine) with `scaffold` and `retrofit` modes, plus the `install`/`update` modes that keep distributed copies current (LLP 0010 folded a once-planned `llp-update-skills` skill in here — adopt already does verified, diff-shown, receipt-writing work, and the posture boundary that matters is maintain's, not adopt's); `llp-maintain` spans four maintenance moments (`pre-pr`, `audit`, `reconcile`, `retire-proposal`) distinguished by scope and artifact. The propose-only line is what lets one skill cover four moments without becoming a mega-skill — maintain *notes* a stale pin; `/llp-adopt update` applies.
 
