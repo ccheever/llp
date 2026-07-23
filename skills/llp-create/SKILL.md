@@ -1,13 +1,13 @@
 ---
 name: llp-create
 description: Create a new LLP document with the next available number, the NNNN-slug.type.md filename convention, and a scaffolded metadata header — or extend an existing LLP when one already covers the topic.
-source: ccheever/llp@v0.2.0
+source: ccheever/llp@v0.3.0
 ---
 
 # llp-create
 
-<!-- @ref https://github.com/ccheever/llp/blob/v0.2.0/llp/0000-linked-literate-programming.explainer.md#1-llp-documents — numbering, metadata, types, statuses -->
-<!-- @ref https://github.com/ccheever/llp/blob/v0.2.0/llp/0008-distributed-agent-skills.rfc.md#the-five-skills — skill contract -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0000-linked-literate-programming.explainer.md#1-llp-documents — numbering, metadata, types, statuses -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0008-distributed-agent-skills.rfc.md#the-five-skills — skill contract -->
 
 Author one LLP in a corpus that already exists. Handles numbering, filename, and the metadata scaffold so the author can focus on content.
 

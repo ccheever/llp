@@ -1,7 +1,7 @@
 # LLP 0010: Installed Skills, Super-Refine, and Ship
 
 **Type:** RFC
-**Status:** Accepted
+**Status:** Active
 **Systems:** LLP, Agents
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-07-22

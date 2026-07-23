@@ -1,13 +1,13 @@
 ---
 name: llp-maintain
 description: "Keep an LLP corpus in sync with its code. Detects code/doc drift, validates @ref annotations interactively, checks provenance tags, and proposes reconciliations, ref repairs, and status changes. Modes — pre-pr, audit, reconcile, retire-proposal. Proposes; never applies."
-source: ccheever/llp@v0.2.0
+source: ccheever/llp@v0.3.0
 ---
 
 # llp-maintain
 
-<!-- @ref https://github.com/ccheever/llp/blob/v0.2.0/llp/0004-design-principles.principles.md — co-evolution and living documents, the model this operationalizes -->
-<!-- @ref https://github.com/ccheever/llp/blob/v0.2.0/llp/0000-linked-literate-programming.explainer.md#6-validation-ref-check — the deterministic subset lives in ref-check, not here -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0004-design-principles.principles.md — co-evolution and living documents, the model this operationalizes -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0000-linked-literate-programming.explainer.md#6-validation-ref-check — the deterministic subset lives in ref-check, not here -->
 
 The upkeep engine. Living documents rot into misleading guidance unless code and docs co-evolve; this skill finds the drift and **proposes** fixes. The propose-only line is what lets one skill cover four maintenance moments without becoming a mega-skill.
 
