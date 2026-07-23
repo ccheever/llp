@@ -39,9 +39,9 @@ Without pinned skills, every agent re-derives the process from the docs and smal
 - **Not replacing the guides.** Skills point at LLP 0000/0001/0005; they don't restate them.
 - **Not shipping a bespoke `llp` CLI** (see Alternatives).
 
-## The five skills
+## The skills — core five, plus flags
 
-Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Recipes inside skills are marked advisory.
+Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Recipes inside skills are marked advisory. The **core** profile is the five workflow skills; the `review-plus` and `delivery` flags add the two below the line (LLP 0010).
 
 | Skill | Primary trigger | Cognitive work | Artifact / gate |
 |---|---|---|---|
@@ -50,10 +50,11 @@ Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Reci
 | **`llp-review`** | a doc enters `Review`, or review is requested | run the LLP 0005 loop, summarize concerns, help revise | artifacts under `llp/reviews/`; never fabricates, never touches `Status` |
 | **`llp-adopt`** | "bring LLP to this repo" / "update the LLP skills" | `scaffold`: structure + root doc; `retrofit`: comprehend, draft, migrate, propose `@ref`s; `install`/`update`: pinned skill copies with receipts (LLP 0010 §1) | new files and managed blocks only; generated docs stay `Draft` with provenance tags; receipts, never clobbered forks |
 | **`llp-maintain`** | pre-PR · audit · reconcile · retire | detect code/doc drift, validate refs interactively, draft reconciliations | findings and proposals; **never applies** |
+| **`llp-super-refine`** (`review-plus`) | author invokes the dual-family refine loop | orchestrate mutually-blind reviews from two model families per round, revise between rounds, reconcile verdicts | verdict-lined, hash-stamped artifacts; bounded rounds; escalates to the author (LLP 0010 §2) |
 
 **Modes instead of more skills.** `llp-adopt` spans one spectrum (how much existing design knowledge there is to mine) with `scaffold` and `retrofit` modes, plus the `install`/`update` modes that keep distributed copies current (LLP 0010 folded a once-planned `llp-update-skills` skill in here — adopt already does verified, diff-shown, receipt-writing work, and the posture boundary that matters is maintain's, not adopt's); `llp-maintain` spans four maintenance moments (`pre-pr`, `audit`, `reconcile`, `retire-proposal`) distinguished by scope and artifact. The propose-only line is what lets one skill cover four moments without becoming a mega-skill — maintain *notes* a stale pin; `/llp-adopt update` applies.
 
-**Hand-offs:** orient → create/review (task needs new design) or maintain (broken ref found); create → adopt (no corpus yet); adopt → orient (corpus exists), review (ratify generated docs), maintain (ongoing health); maintain → review (a reconciliation is really new design).
+**Hand-offs:** orient → create/review (task needs new design) or maintain (broken ref found); create → adopt (no corpus yet); adopt → orient (corpus exists), review (ratify generated docs), maintain (ongoing health); maintain → review (a reconciliation is really new design) and stale pins → `/llp-adopt update`; super-refine → create (feedback is a new design) and the author for `Accepted`.
 
 **Harness mechanics.** For facts, prefer a pipeline whose output *is* the answer — e.g. next LLP number:
 
