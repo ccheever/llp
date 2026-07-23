@@ -5,8 +5,8 @@
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
-**Revised:** 2026-06-10 (merged with the former LLP 0002 retrofit guide, per [LLP 0009](./0009-capability-invariant-core.rfc.md))
-**Related:** LLP 0000
+**Revised:** 2026-07-23 (added the skill-install step, per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md). Earlier: 2026-06-10, merged with the former LLP 0002 retrofit guide, per [LLP 0009](./0009-capability-invariant-core.rfc.md))
+**Related:** LLP 0000, LLP 0010
 
 ## Summary
 
@@ -25,6 +25,7 @@ Inspect the repository first. Is there already an `llp/` directory (extend it �
 2. **Write LLP 0000, the root document** — typically an `Explainer` carrying `**Role:** Root`: what the project does and why, the major subsystems and how they relate, and key constraints or invariants that aren't obvious from the code. Even a half-page is valuable; it gives agents a starting point and humans a place to point newcomers.
 3. **Configure agent instructions.** Add or update `AGENTS.md` so agents know: where LLP documents live; to read relevant LLPs before changing areas they cover; to add `@ref` annotations when implementing non-obvious documented decisions; to update LLPs when the design changes; and to flag code that contradicts its referenced LLP. When a tool expects `CLAUDE.md`, symlink it to `AGENTS.md` rather than maintaining divergent copies. This is what makes LLP self-reinforcing: agents told about the system maintain it as they work.
 4. **Reruns are idempotent.** Setting up twice must not duplicate files or instruction blocks.
+5. **Install the skills (optional but recommended).** `llp-adopt` offers to copy the LLP workflow skills from a tagged release of the upstream repo into your runtime's skill directory, writing a receipt (origin, tag, resolved commit, per-file hashes) beside the installation. The install unit is a profile — **core** (the five workflow skills) plus opt-in flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`, which also asks for the repo's delivery policy). Update later with `/llp-adopt update`: it diffs your installed copies against the receipt (a hand-edited skill is a fork — flagged, never overwritten) and against the newest release, and applies approved updates as a set. Design and trust model: [LLP 0010 §1](./0010-skill-install-super-refine-ship.rfc.md#1-installation-and-updates-llp-adopt-extended).
 
 ## Scaffold mode (greenfield)
 

@@ -5,7 +5,7 @@
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-06-10
-**Revised:** 2026-06-10 (post GPT-family review — see `llp/reviews/0009-capability-invariant-core.gpt.md`; accepted by the author and implemented the same day — see Addendum)
+**Revised:** 2026-07-23 (distribution machinery reclassified per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md) — see Addendum. Earlier: 2026-06-10, post GPT-family review — see `llp/reviews/0009-capability-invariant-core.gpt.md`; accepted by the author and implemented the same day)
 **Related:** LLP 0000, LLP 0003, LLP 0004, LLP 0005, LLP 0008
 
 ## Summary
@@ -170,6 +170,10 @@ Sizes are rerunnable, not vibes: `wc -l llp/[0-9]*.md skills/*/SKILL.md`, minus 
 4. **Where does the shell's deletion log live?** Lightest viable answer: the owning document's git history plus a line in its `Revised` metadata. Anything heavier contradicts this RFC.
 5. **Is `Accepted` worth keeping as distinct from `Active` once agents implement designs within hours of acceptance?** Lean yes (the gap still exists for humans deciding *whether* to build), but revisit with usage.
 6. **Where do shorthand mappings live?** The grammar retains `SPEC#anchor`-style project shorthands for compatibility, but no mapping format has ever been defined (LLP 0008 deferred `llp.json`). `ref-check` v1 therefore skips unmapped shorthands rather than failing them. Define the mapping's home the first time a real project needs one — not before.
+
+## Addendum (2026-07-23): LLP 0010 supersedes the distribution classification
+
+[LLP 0010](./0010-skill-install-super-refine-ship.rfc.md), motivated by an *observed* failure (this repo's own `llp-maintain` skill drifted from the `v0.2.0` tag it pins), makes distribution first-party: `llp-adopt` gains an install step and update mode backed by tagged releases and per-installation receipts, and the skill set grows to seven as core-plus-flags (`llp-super-refine`, `llp-ship`). This supersedes the classification above of distribution machinery as absent shell — the receipts design is far smaller than the cut `llp-spec:` vendoring machinery, and the `source:` pin stays informational. The capability test, the ≤60-line contract form, the five-skill *core*, and everything else in this RFC stand. Phase 4 (real-consumer evidence, recorded as a Research LLP) remains the open proof obligation; LLP 0010 OQ5 names install receipts and run telemetry as its data sources.
 
 ## Addendum (2026-06-10): Phases 0–3 implemented
 

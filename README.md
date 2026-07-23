@@ -73,10 +73,11 @@ The full workflow (greenfield and retrofit) is in [LLP 0001](./llp/0001-adopting
 
 ## Skills
 
-Five skills cover the LLP loop — each a plain-markdown directory under [`skills/`](./skills/) with a `SKILL.md` contract (trigger · invariants · artifact · hand-offs). Claude Code consumes them directly; other agent tools can adopt the same shape. Install by copying:
+Seven skills cover the LLP loop — each a plain-markdown directory under [`skills/`](./skills/) with a `SKILL.md` contract (trigger · invariants · artifact · hand-offs). Claude Code consumes them directly; other agent tools can adopt the same shape. The managed way in is `/llp-adopt`, whose install step copies skills **from a tagged release** and writes a receipt so `/llp-adopt update` can later diff and update them without clobbering local edits ([LLP 0010 §1](./llp/0010-skill-install-super-refine-ship.rfc.md)). The install unit is a profile: **core** (the five below) plus opt-in flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`). Hand-copying still works:
 
 ```bash
-cp -r skills/llp-orient ~/.claude/skills/      # or all of skills/
+git clone --branch v0.3.0 --depth 1 https://github.com/ccheever/llp
+cp -r llp/skills/llp-orient ~/.claude/skills/   # or all of skills/
 ```
 
 | Skill | Slash command | What it does |
@@ -84,7 +85,7 @@ cp -r skills/llp-orient ~/.claude/skills/      # or all of skills/
 | [`llp-orient`](./skills/llp-orient/SKILL.md) | `/llp-orient <path-or-task>` | Load the governing LLP context before coding: root LLP, `@ref`s in scope, the LLPs covering the relevant systems. Emits a compact context pack. Read-only. |
 | [`llp-create`](./skills/llp-create/SKILL.md) | `/llp-create <title>` | Author one LLP — next number, filename, metadata scaffold. Prefers extending an existing LLP that already covers the topic. |
 | [`llp-review`](./skills/llp-review/SKILL.md) | `/llp-review <llp>` | Run the LLP 0005 review loop, scaled to stakes. One provenance-tracked artifact per review actually received, under `llp/reviews/`. Never fabricates; never accepts on the author's behalf. |
-| [`llp-adopt`](./skills/llp-adopt/SKILL.md) | `/llp-adopt` | Bring LLP to any repo — `scaffold` (fresh) or `retrofit` (survey, draft provenance-tagged docs, propose a plan), auto-detected. |
+| [`llp-adopt`](./skills/llp-adopt/SKILL.md) | `/llp-adopt` | Bring LLP to any repo — `scaffold` (fresh) or `retrofit` (survey, draft provenance-tagged docs, propose a plan), auto-detected — and install/update the skills themselves: `/llp-adopt update` diffs installed copies against their receipt and the newest release; forks are flagged, never clobbered. |
 | [`llp-maintain`](./skills/llp-maintain/SKILL.md) | `/llp-maintain --intent <mode>` | Keep code and docs co-evolving: drift, ref repairs, provenance, retirements. Modes: `pre-pr`, `audit`, `reconcile`, `retire-proposal`. Proposes; never applies. |
 
 The skills are deletable adapters: every MUST in a `SKILL.md` cites the LLP section it comes from (as a pinned upstream URL, so copies stay resolvable), and a runtime with no skills mechanism gets the same behavior from the `AGENTS.md` routing block plus the documents. See [LLP 0008](./llp/0008-distributed-agent-skills.rfc.md) for the design and [LLP 0009](./llp/0009-capability-invariant-core.rfc.md) for why the set is this small.

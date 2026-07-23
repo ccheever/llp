@@ -40,4 +40,5 @@ For `@ref`s in scope: **broken** target/anchor (error — list the anchors that 
 
 - A reconciliation that is really a new design decision → `llp-review`.
 - Broken refs surfaced by `llp-orient` land here for repair proposals.
+- A stale `source:` pin noted by `audit` → `/llp-adopt update` applies the update after an approved diff (this skill never applies).
 - Deterministic CI enforcement → `ref-check`.

@@ -5,8 +5,8 @@
 **Systems:** LLP, Agents
 **Author:** Charlie Cheever / Codex
 **Date:** 2026-06-08
-**Revised:** 2026-06-10 (revised down to its surviving decisions per [LLP 0009](./0009-capability-invariant-core.rfc.md); the `llp-spec:` namespace, mechanics-recipe layer, provenance machinery, and fixture-harness plans were cut — see that RFC's cuts table)
-**Related:** LLP 0000, LLP 0001, LLP 0004, LLP 0005, LLP 0009
+**Revised:** 2026-07-23 (distribution loop closed per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md): `llp-adopt` gains an install step and update mode backed by tagged releases and per-installation receipts; the skill set grows to seven as core-plus-flags. Earlier: 2026-06-10, revised down to its surviving decisions per [LLP 0009](./0009-capability-invariant-core.rfc.md) — the `llp-spec:` namespace, mechanics-recipe layer, provenance machinery, and fixture-harness plans were cut; see that RFC's cuts table)
+**Related:** LLP 0000, LLP 0001, LLP 0004, LLP 0005, LLP 0009, LLP 0010
 
 ## Summary
 
@@ -48,10 +48,10 @@ Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Reci
 | **`llp-orient`** | before touching a subsystem with documented design — carried by the `AGENTS.md` rule | find governing LLPs, follow `@ref`s and `Related:` one hop, distill active constraints | read-only context pack |
 | **`llp-create`** | "capture this decision / write a new LLP" | pick type, draft type-appropriate sections from the conversation | a new `Draft` LLP; prefers extending a covering doc |
 | **`llp-review`** | a doc enters `Review`, or review is requested | run the LLP 0005 loop, summarize concerns, help revise | artifacts under `llp/reviews/`; never fabricates, never touches `Status` |
-| **`llp-adopt`** | "bring LLP to this repo" — one entry point, greenfield or brownfield | `scaffold`: structure + root doc; `retrofit`: comprehend, draft, migrate, propose `@ref`s | new files and managed blocks only; generated docs stay `Draft` with provenance tags |
+| **`llp-adopt`** | "bring LLP to this repo" / "update the LLP skills" | `scaffold`: structure + root doc; `retrofit`: comprehend, draft, migrate, propose `@ref`s; `install`/`update`: pinned skill copies with receipts (LLP 0010 §1) | new files and managed blocks only; generated docs stay `Draft` with provenance tags; receipts, never clobbered forks |
 | **`llp-maintain`** | pre-PR · audit · reconcile · retire | detect code/doc drift, validate refs interactively, draft reconciliations | findings and proposals; **never applies** |
 
-**Modes instead of more skills.** `llp-adopt` spans one spectrum (how much existing design knowledge there is to mine) with `scaffold` and `retrofit` modes; `llp-maintain` spans four maintenance moments (`pre-pr`, `audit`, `reconcile`, `retire-proposal`) distinguished by scope and artifact. The propose-only line is what lets one skill cover four moments without becoming a mega-skill.
+**Modes instead of more skills.** `llp-adopt` spans one spectrum (how much existing design knowledge there is to mine) with `scaffold` and `retrofit` modes, plus the `install`/`update` modes that keep distributed copies current (LLP 0010 folded a once-planned `llp-update-skills` skill in here — adopt already does verified, diff-shown, receipt-writing work, and the posture boundary that matters is maintain's, not adopt's); `llp-maintain` spans four maintenance moments (`pre-pr`, `audit`, `reconcile`, `retire-proposal`) distinguished by scope and artifact. The propose-only line is what lets one skill cover four moments without becoming a mega-skill — maintain *notes* a stale pin; `/llp-adopt update` applies.
 
 **Hand-offs:** orient → create/review (task needs new design) or maintain (broken ref found); create → adopt (no corpus yet); adopt → orient (corpus exists), review (ratify generated docs), maintain (ongoing health); maintain → review (a reconciliation is really new design).
 
@@ -61,7 +61,9 @@ Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Reci
 
 ## Distribution
 
-Distribution is just files: copy a skill directory into the runtime's skill location.
+Distribution is files — a skill directory copied into the runtime's skill location — but the copying is managed: `llp-adopt`'s **install step** copies skills from a **tagged release** of this repo and writes a **receipt** beside the installation (origin, tag, resolved commit, profile flags, per-file content hashes); its **update mode** (`/llp-adopt update`) three-way-checks installed copies against the receipt, presents the full diff, and applies approved updates as a set — forks are never clobbered, and cannot-verify writes nothing. The install unit is a profile: **core** (the five skills below) plus additive flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`). Full design, trust model, and threat model: [LLP 0010 §1](./0010-skill-install-super-refine-ship.rfc.md#1-installation-and-updates-llp-adopt-extended).
+
+The runtime locations (advisory; confirmed against runtime docs at install time):
 
 | Runtime | Skill directory (per runtime docs; verify) |
 |---|---|
