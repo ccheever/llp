@@ -1,13 +1,13 @@
 ---
 name: llp-ship
 description: Take one or more tasks (Linear tickets, ticket files, accepted LLPs, free text) end to end — plan lanes, implement in run-namespaced worktrees, integrate on a run branch, verify and review the exact integrated commit, deliver per repo policy (direct push by default), and clean up without destroying recoverable work. Use when the user invokes /llp-ship or hands over tasks to be implemented and shipped.
-source: ccheever/llp@v0.3.0
+source: ccheever/llp@v0.4.0
 ---
 
 # llp-ship
 
-<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0010-skill-install-super-refine-ship.rfc.md#3-llp-ship — the gates, authority model, and delivery semantics this pins -->
-<!-- @ref https://github.com/ccheever/llp/blob/v0.3.0/llp/0004-design-principles.principles.md — co-evolution: docs and @refs land in the same commits -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0010-skill-install-super-refine-ship.rfc.md#3-llp-ship — the gates, authority model, and delivery semantics this pins -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0004-design-principles.principles.md — co-evolution: docs and @refs land in the same commits -->
 
 Invoke as `/llp-ship <ref...> [--base <branch>] [--mode local|pr|direct]`. Invoking ship is choosing to ship: the invocation authorizes delivery in the stated mode (repo policy file = default and ceiling; no policy → `direct`).
 
