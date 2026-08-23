@@ -1,13 +1,13 @@
 ---
 name: llp-orient
 description: Before editing a subsystem, file, or starting a task, assemble the governing LLP context — read the root LLP, follow the @ref annotations on the code in scope, and find the LLPs covering the relevant systems. Produces a compact context pack of the constraints a change must respect. Read-only.
-source: ccheever/llp@v0.4.0
+source: ccheever/llp@v0.5.0
 ---
 
 # llp-orient
 
-<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0008-distributed-agent-skills.rfc.md#the-five-skills — skill contract -->
-<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0000-linked-literate-programming.explainer.md#2-reference-syntax — the grammar this reads -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.5.0/llp/0008-distributed-agent-skills.rfc.md#the-five-skills — skill contract -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.5.0/llp/0000-linked-literate-programming.explainer.md#2-reference-syntax — the grammar this reads -->
 
 Load the design rationale governing the area you're about to touch, before touching it. This is the consumption side of LLP — orienting first is what turns `@ref` from a possibility into a habit.
 
