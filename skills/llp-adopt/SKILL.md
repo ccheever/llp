@@ -35,11 +35,11 @@ One entry point for "add LLP to this project" and "update the LLP skills". Invok
 
 ## Workflow
 
-> **Recipe (advisory)** — *Adoption:* inspect first (existing `llp/`? agent files? how much code?): little to mine → **scaffold**; substantial history → **retrofit**. Both share the spine: `llp/`, root LLP 0000 (`Explainer`, `**Role:** Root`), the `AGENTS.md` managed block. Retrofit adds: survey, draft root LLP, propose 2–5 subsystem LLPs, layered annotation plan (LLP 0001). *Install:* offer after the managed blocks; default profile core, flags opt-in. *Update:* fetch the tag's tree (shallow clone or archive; git required), diff, approve, apply as a staged set with prior bytes retained until the receipt lands; rollback is `git revert` where the installation is committed, the backups otherwise. *Releasing (this repo):* bump `source:` pins and pinned URLs → commit → tag → push tag — a skill-file change is not installable until tagged.
+> **Recipe (advisory)** — *Adoption:* inspect first (existing `llp/`? agent files? how much code?): little to mine → **scaffold**; substantial history → **retrofit**. Both share the spine: `llp/` with its `current/` and `foundation/` overlay directories, root LLP 0000 (`Explainer`, `**Role:** Root`, `Draft` — linked into `current/`; it enters `foundation/` when the author makes it `Active`), the `AGENTS.md` managed block. Retrofit adds: survey, draft root LLP, propose 2–5 subsystem LLPs, layered annotation plan (LLP 0001). *Install:* offer after the managed blocks; default profile core, flags opt-in. *Update:* fetch the tag's tree (shallow clone or archive; git required), diff, approve, apply as a staged set with prior bytes retained until the receipt lands; rollback is `git revert` where the installation is committed, the backups otherwise. *Releasing (this repo):* bump `source:` pins and pinned URLs → commit → tag → push tag — a skill-file change is not installable until tagged.
 
 ## Artifact
 
-Scaffold: `llp/`, an LLP 0000 skeleton, the managed blocks. Retrofit: those plus a survey summary, `Draft` provenance-tagged document(s), and a proposed adoption plan. Install/update: pinned skill copies, the receipt, and (with the `delivery` flag) the repo policy file.
+Scaffold: `llp/` with empty `current/` and `foundation/`, an LLP 0000 skeleton linked into `current/`, the managed blocks. Retrofit: those plus a survey summary, `Draft` provenance-tagged document(s), and a proposed adoption plan. Install/update: pinned skill copies, the receipt, and (with the `delivery` flag) the repo policy file.
 
 ## Hand-offs
 

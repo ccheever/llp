@@ -67,21 +67,17 @@ LLP documents are designed to be read, written, and modified by both humans and 
 
 #### Numbering
 
-LLP documents are identified by zero-padded numbers: `LLP 0000` through `LLP 9999`. Filenames follow the pattern `NNNN-slug.type.md`, where `type` is the lowercased document type (e.g., `0042-authentication.rfc.md`). Encoding the type in the filename makes it visible in directory listings and diffs without opening the file. Numbers are globally unique across the whole `llp/` tree and are never reused.
+Filenames follow the grammar `NNNN(.NNN)*-slug.type.md`: a four-digit number from one global sequence, optionally followed by dotted three-digit child segments, then a slug and the lowercased document type (e.g. `0042-authentication.rfc.md`, `0042.000-session-tokens.spec.md`). The zero-depth form `NNNN-slug.type.md` is the common case. Encoding the type in the filename makes it visible in directory listings and diffs without opening the file.
 
-**Sub-LLPs.** A document may be numbered under a parent by appending dotted three-digit segments: `0042.000-session-tokens.spec.md` is the first child of LLP 0042, `0042.000.000-…` its first grandchild, to any depth. The full grammar is `NNNN(.NNN)*-slug.type.md`. The rules:
+**Identity.** The full (dotted) number is the document's identity: it appears in the title (`# LLP 0042.000: …`), in `@ref LLP 0042.000#anchor`, and in `Related:` lines. Numbers at every level are allocated in creation order and are **never reused — including numbers of documents later deleted**. An allocator that derives the next number from the tree must also consult history (git) for deleted ones.
 
-- The dotted number is the identity — it appears in the title (`# LLP 0042.000: …`), in `@ref LLP 0042.000#anchor`, and in `Related:` lines.
-- Children are numbered `000`, `001`, … in creation order under their parent. Nothing is reserved, and numbers at every level are never reused.
-- The parent must exist (`ref-check` gates this). Position is fixed at birth: a document is never re-parented by renaming — link to it from where it also belongs.
-- Each sub-LLP has its own `Status:` and lifecycle; the tree is a naming relationship, not a promotion unit.
-- Depth is unbounded; two levels should cover nearly everything, and deeper is a smell.
+**Sub-LLPs.** `0042.000` is the first child of LLP 0042, `0042.000.000` its first grandchild, to any depth. Children are numbered `000`, `001`, … in creation order under their parent; nothing is reserved. The parent must exist (`ref-check` gates this), and a parent with children is tombstoned rather than deleted. Position is fixed at birth: a document is never re-parented by renaming — link to it from where it also belongs. Each sub-LLP has its own `Status:` and lifecycle; the tree is a naming relationship, not a promotion unit. Depth is unbounded; two levels cover nearly everything, and deeper is a smell. A typical use: an RFC at `0042`, the spec pinning down what was accepted at `0042.000`, the execution plan at `0042.001`.
 
-A typical use: an RFC at `0042`, the spec that pins down what was accepted at `0042.000`, the execution plan at `0042.001`.
+**Allocation on branches.** A number allocated on a branch is provisional until integration: if two branches allocate the same number (at any level), the later-integrated document renumbers, rewriting every reference to it, before merge. `ref-check`'s duplicate-number gate is what catches the collision.
 
 #### Filesystem organization
 
-Every LLP lives directly under `llp/`, and stays there for its whole life. A document's lifecycle is carried by its `**Status:**` header and by the two overlays below — never by its path. Nothing is moved to change its state.
+**Path is not lifecycle.** An LLP lives under `llp/` and keeps its path for its whole life; its lifecycle is carried by its `**Status:**` header and by the two overlays below, never by where it sits. Nothing is moved to change its state. (Documents may still be *deleted* when no longer worth keeping — see [Living documents](#living-documents) — their numbers stay allocated.)
 
 ```
 llp/
@@ -99,22 +95,28 @@ llp/
   reviews/                                  # review artifacts (LLP 0005), not LLPs
 ```
 
-Subdirectories for human grouping are permitted but carry no meaning — `@ref LLP 0003#focus-trapping` doesn't encode a path, so documents can be regrouped without breaking references. `current/`, `foundation/`, and `reviews/` are the three reserved names. Sub-LLP numbering, not directories, is how related documents are grouped.
+Grouping subdirectories under `llp/` are valid but meaningless — `@ref LLP 0003#focus-trapping` doesn't encode a path, so documents can be regrouped without breaking `LLP`-form references (path-form references and markdown links do break on a move, which is one more reason not to move things). Sub-LLP numbering, not directories, is how related documents are grouped; this repo keeps `llp/` flat. `current/`, `foundation/`, and `reviews/` are reserved names and are not document directories.
 
-The root document of a project is an **Explainer** carrying `**Role:** Root`; LLP 0000 is the entry point and is always in `foundation/`.
+The root document of a project is an **Explainer** carrying `**Role:** Root`; LLP 0000 is the entry point, and belongs in `foundation/` from the moment it is `Active`.
 
 #### Current and foundation
 
-Two directories under `llp/` hold **symlinks only** — relative links to documents in `llp/`. The document is the file; the link is a tag. Adding or removing a link never touches the document.
+Two directories under `llp/` hold **links only** — each entry names one document in `llp/` by relative path. The document is the file; the link is a tag. Adding or removing a link never touches the document.
 
-| Overlay | A document belongs here iff… | How it changes |
+| Overlay | What an entry means | How it changes |
 |---|---|---|
-| `llp/current/` | someone — human or agent — is working on it or thinking about it now | link it when you start (new LLPs are linked by default); remove the link when the conversation ends. Removal is the whole archive operation. |
-| `llp/foundation/` | deleting it, with the rest of foundation and the code intact, would make the project unrecreatable | promotion is an editing act: fold what survived from proposals into the living document, then link the living document. Demotion is removing the link. |
+| `llp/current/` | The project's **declared working set**: this document is in play — being written, revised, discussed, or implemented. Committed and branch-scoped like any other file; an entry is a claim the project makes, not a live sensor of anyone's attention. | Link a document when work on it starts (new LLPs are linked by default); remove the link when the work is done. Removal is the whole archive operation. On a shared branch, remove only links for work you own or that the curation pass has judged idle. |
+| `llp/foundation/` | The **kernel**: the smallest set of documents from which the project's design could be recreated — see the admission test below. | Promotion is an editing act: fold what survived from proposals into the living document, then link the living document. Demotion is removing the link. `foundation/` may be empty (a fresh adoption whose root is still `Draft`). |
 
-Rules, all gated by `ref-check`: every entry in either overlay is a symlink to an LLP under `llp/`; `Tombstoned` and `Superseded` documents appear in neither; `foundation/` entries are `Active`.
+**Representation.** The canonical entry is a relative symlink (`ln -s ../0042-x.rfc.md llp/current/0042-x.rfc.md`). A regular file whose entire content is that same relative path is equivalent — it is exactly what git materializes on a checkout without symlink support (`core.symlinks=false`), so overlays survive Windows checkouts and archive transports unchanged. Absolute targets are invalid. Dotfiles in an overlay are ignored; an absent overlay directory means an empty overlay, and the skills create it on first use.
 
-Orientation order for an agent is `foundation/` → `current/` → the `@ref` targets in scope. `ls llp/foundation` should read as a newcomer's table of contents and stay small; `ls llp/current` is the honest answer to "what is in play." A periodic **curation pass** — promote, archive, realign the code to foundation — keeps both true; the procedure is [LLP 0011.000](./0011.000-curation-pass.guide.md) and `llp-maintain --intent curate` runs it.
+**Admission test for foundation.** "Recreate" means the *design*, not a runnable tree: the decisions still in force, the constraints code must satisfy, and the rationale that keeps those decisions from being silently re-made. History — rejected alternatives, superseded designs, the record of how a decision was reached — is not kernel unless the decision is one the project would otherwise re-litigate. So: the root explainer, principles, and current-truth specs typically pass; accepted RFCs typically fail (their surviving decisions belong folded into a living document); guides pass only when the procedure they describe is itself a design commitment. The test is set-level: the proposed foundation must be *collectively* sufficient, and removals are tested one at a time against the proposed set, re-testing after each removal — never pairwise. Too small is a failure too: if orienting from `foundation/` alone would miss a binding constraint, something is missing.
+
+**Rules gated by `ref-check`:** every overlay entry resolves, by relative path, to an LLP under `llp/`; `Tombstoned` documents appear in neither overlay; `foundation/` entries are `Active`; `Superseded` documents may appear in `current/` (a migration in progress is work) but not in `foundation/`.
+
+**Curation contract.** A curation pass runs its verbs in order — **promote**, then **archive**, then **realign** — and proposes; a human applies. Realign compares code to `foundation/` only. Before any realignment is proposed, each foundation claim it relies on is checked against every other binding `Active` normative document; a conflict is resolved *in the same pass* by updating, folding, or superseding the non-foundation document (foundation wins) — or by recognizing the foundation claim as wrong and fixing foundation — never by proposing code against a known contradiction. Cadence, heuristics, and output format are advisory and live in [LLP 0011.000](./0011.000-curation-pass.guide.md); `llp-maintain --intent curate` runs it.
+
+Orientation order for an agent is `foundation/` → `current/` → the `@ref` targets in scope; `ls` answers both. `ls llp/foundation` should read as a newcomer's table of contents and stay small; `ls llp/current` is the project's statement of what is in play.
 
 #### Metadata header
 
@@ -150,8 +152,8 @@ The **standard statuses**:
 | **Review** | The author has opted this document into a formal review loop (see [LLP 0005](./0005-rfc-process.guide.md)) |
 | **Accepted** | Approved for implementation; design stable, code not yet written |
 | **Active** | Current guidance |
-| **Superseded** | Replaced by newer guidance but kept for migration context; say what replaced it in `**Superseded by:**` |
-| **Tombstoned** | Rejected or superseded; read for history only. Its `@ref`s are not validated, and it may not appear in `current/` or `foundation/` |
+| **Superseded** | Replaced by newer guidance but kept for migration context; say what replaced it in `**Superseded by:**`. May sit in `current/` while the migration is in progress; never in `foundation/` |
+| **Tombstoned** | Rejected or superseded; read for history only. Its `@ref`s are not validated (it may cite things that no longer exist), and it may not appear in `current/` or `foundation/` |
 
 Note that "not current" is not a status. A finished, correct document that nobody is discussing is simply `Active` and absent from `current/`. `Tombstoned` is reserved for documents whose claims should no longer be believed.
 
@@ -258,7 +260,7 @@ No relation means a general association — the default and most common case. Ad
 ./ref-check --root X   # check another tree
 ```
 
-**What it checks, per target form:** `LLP NNNN[#anchor]` — the document exists and, when given, the anchor heading exists. `path[#anchor]` — the file exists (any type); anchors are checked in markdown targets and reported `unchecked` for non-text formats. Shorthands — listed as unchecked unless the project defines a mapping. URLs — shape-validated, never fetched. **Corpus-wide:** metadata headers parse; the filename's `type` matches `**Type:**`; LLP numbers (dotted included) are unique and every sub-LLP's parent exists; overlay entries are symlinks to non-tombstoned LLPs and foundation entries are `Active` (see [Current and foundation](#current-and-foundation)); no `[inferred]` claim survives in an `Accepted`/`Active` document (see [Provenance](#provenance-for-generated-rationale)).
+**What it checks, per target form:** `LLP NNNN[#anchor]` — the document exists and, when given, the anchor heading exists. `path[#anchor]` — the file exists (any type); anchors are checked in markdown targets and reported `unchecked` for non-text formats. Shorthands — listed as unchecked unless the project defines a mapping. URLs — shape-validated, never fetched. **Corpus-wide:** metadata headers parse; the filename's `type` matches `**Type:**`; LLP numbers (dotted included) are unique and every sub-LLP's parent exists; overlay entries are relative links to LLPs under `llp/` (symlink or path-content file), no `Tombstoned` document is in an overlay, no `Superseded` document is in `foundation/`, and `foundation/` entries are `Active` (see [Current and foundation](#current-and-foundation)); a malformed `LLP`-prefixed target (`LLP 0011.00`, `LLP 10000`) is an error, not an unchecked shorthand; no `[inferred]` claim survives in an `Accepted`/`Active` document (see [Provenance](#provenance-for-generated-rationale)).
 
 **Severity:** broken references, malformed metadata, duplicate or orphaned numbers, overlay violations, and `[inferred]`-past-`Draft` exit non-zero. Anything requiring judgment — stale glosses, orphaned annotations, doc/code drift — is deliberately *not* gated; that's interactive work for an agent plus a human (the `llp-maintain` skill).
 

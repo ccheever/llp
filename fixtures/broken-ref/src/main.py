@@ -16,3 +16,8 @@ def broken_document():
 # @ref LLP 0000#missing-anchor — broken: the anchor is not in LLP 0000
 def broken_anchor():
     pass
+
+
+# @ref LLP 0000.00#anything — broken: malformed LLP number must not degrade to shorthand
+def malformed_number():
+    pass

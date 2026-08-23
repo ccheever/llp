@@ -13,9 +13,11 @@ Checks (broken = exit 1):
     LLP numbers (including dotted sub-LLP numbers) are unique across the
     tree; every sub-LLP's parent exists.
   * No [inferred] claim survives in an Accepted/Active document.
-  * Overlays: every entry in llp/current/ and llp/foundation/ is a symlink
-    to an LLP in the corpus; no Tombstoned/Superseded doc is in either;
-    foundation entries are Active.
+  * Overlays: every entry in llp/current/ and llp/foundation/ is a relative
+    link (symlink, or a regular file whose content is the relative path —
+    git's core.symlinks=false form) to an LLP in the corpus; no Tombstoned
+    doc is in either; foundation entries are Active (so never Superseded).
+  * A malformed LLP-prefixed target (LLP 0011.00, LLP 10000) is an error.
 
 Judgment calls (stale glosses, drift, orphaned annotations) are
 deliberately not gated — that is interactive work for llp-maintain.
@@ -34,7 +36,7 @@ SKIP_DIRS = {".git", ".hg", "node_modules", "__pycache__", ".venv", "venv",
 REQUIRED_FIELDS = ("Type", "Status", "Systems", "Author", "Date")
 GATED_STATUSES = {"accepted", "active"}
 OVERLAYS = ("current", "foundation")          # symlink overlays under llp/
-OVERLAY_BANNED = {"tombstoned", "superseded"}  # may appear in neither overlay
+OVERLAY_BANNED = {"tombstoned"}                # may appear in neither overlay
 FOUNDATION_REQUIRED = {"active"}               # foundation is current truth only
 NON_DOC_DIRS = {"reviews", *OVERLAYS}
 MAX_BYTES = 2_000_000
@@ -128,6 +130,8 @@ def parse_target(rest):
     if m:
         return "llp", m.group(1), m.group(2)
     token = rest.split()[0] if rest.split() else ""
+    if token == "LLP":  # LLP-shaped but malformed: never degrade to shorthand
+        return "bad-llp", rest, None
     if token.startswith(("http://", "https://")):
         return "url", token, None
     if SHORTHAND_RE.match(token):
@@ -208,15 +212,24 @@ def check(root):
         if not os.path.isdir(odir):
             continue
         for name in sorted(os.listdir(odir)):
+            if name.startswith("."):
+                continue
             entry = os.path.join(odir, name)
             rel = os.path.relpath(entry, root)
-            if not os.path.islink(entry):
-                rep.error(f"{rel}: overlay entry is not a symlink (overlays hold links, not documents)")
+            if os.path.islink(entry):
+                link = os.readlink(entry)
+            elif os.path.isfile(entry) and os.path.getsize(entry) < 1024:
+                link = (read_text(entry) or "").strip()  # path-content file (core.symlinks=false)
+            else:
+                rep.error(f"{rel}: overlay entry is not a link (overlays hold links, not documents)")
                 continue
-            target = os.path.abspath(os.path.join(odir, os.readlink(entry)))
+            if not link or os.path.isabs(link) or "\n" in link:
+                rep.error(f"{rel}: overlay entry must be a relative link to a document under llp/ (got {link!r})")
+                continue
+            target = os.path.abspath(os.path.join(odir, link))
             num = doc_paths.get(target)
             if num is None:
-                rep.error(f"{rel}: dangling overlay link -> {os.readlink(entry)} (not an LLP under llp/)")
+                rep.error(f"{rel}: dangling overlay link -> {link} (not an LLP under llp/)")
                 continue
             st = statuses.get(num, "")
             if st in OVERLAY_BANNED:
@@ -254,6 +267,8 @@ def check(root):
                         rep.error(f"{where}: broken ref: LLP {num} not found under llp/")
                     elif anchor and not anchor_resolves(anchor, headings[num]):
                         rep.error(f"{where}: broken ref: no anchor #{anchor} in {docs[num]}")
+                elif kind == "bad-llp":
+                    rep.error(f"{where}: malformed LLP target: '{target}' (expected LLP NNNN[.NNN...][#anchor])")
                 elif kind == "url":
                     if not URL_RE.match(target):
                         rep.error(f"{where}: malformed URL target: {target}")
