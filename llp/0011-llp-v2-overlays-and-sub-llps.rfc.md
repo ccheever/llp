@@ -1,10 +1,11 @@
 # LLP 0011: LLP v2 — Sub-LLPs, Current and Foundation Overlays, Flat Corpus
 
 **Type:** RFC
-**Status:** Accepted
+**Status:** Review
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-08-22
+**Revised:** 2026-08-22 (status corrected Accepted → Review: the initial acceptance had no review behind it; entered the LLP 0010 §2 super-refine loop with LLP 0011.000, lockstep)
 **Related:** LLP 0000, LLP 0004, LLP 0009, LLP 0011.000
 
 ## Summary
@@ -94,4 +95,4 @@ The procedure, cadence, and checklist are [LLP 0011.000](./0011.000-curation-pas
 
 ## Status
 
-Accepted 2026-08-22 by the author after a design conversation; implemented the same day (grammar and overlay checks in `ref-check`, tombstones flattened, LLP 0000 and the skills revised, this document and LLP 0011.000 written). The open proof obligation is the first few curation passes on this corpus.
+Designed 2026-08-22 in a conversation between the authors and implemented the same day (grammar and overlay checks in `ref-check`, tombstones flattened, LLP 0000 and the skills revised, this document and LLP 0011.000 written) ahead of review; in `Review` as of the same date. Acceptance is the author's call after the loop. The open proof obligation after that is the first few curation passes on this corpus.
