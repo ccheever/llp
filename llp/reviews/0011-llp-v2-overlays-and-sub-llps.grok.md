@@ -49,3 +49,42 @@ LLP v1 mixed “not under discussion” with “wrong” by moving files, and it
 **0011.000:** READY — Promote → archive → realign, in that order, with propose-only output, is the procedure the RFC describes; the admission test needs sharpening but is not an infeasible choice.
 
 **Set:** READY — No unresolved MATERIAL concern in capsule `a6836bf5644b85333634e5b1c196d7bd9eb15c16ce81ec4a7202038252015589`.
+
+## Round 2 (delta round) — 2026-08-22
+
+**Provider / runtime:** as round 1.
+**Method:** as round 1, plus: received `DELTA.diff` (ceafa66→c46cdd2) and this family's own round-1 punch list only. *Orchestrator note:* prompt again offloaded by the CLI and read back via `read_file` (5 calls, all its own prompt file); the leading narration sentences are the model's.
+**Revision reviewed:** commit `c46cdd2` (r2); 0011 `fb859be2fd25a3e21cc801f93ded5ce803860495bd9be274695cc02f88193c09`, 0011.000 `5b764484eaac460c092895d1e6b9d4480c777676467fb5c58d4a14ea90d48087`; capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c`.
+
+### Review (verbatim)
+
+I'll read the offloaded prompt file so the review can follow the required format using the full documents and punch list.The prompt was truncated mid-diff; I'll keep reading the rest of the inlined documents.The remaining governing docs and punch-list details are still further down; I'll keep reading them.I'll continue through the remaining skills, AGENTS.md, README, and the rest of the diff.I'll pull the remaining skill files, AGENTS.md, and README so I can check those against the punch list.## Punch list verification
+
+1 · PARTIAL · Overlay portability is specified and gated (relative path-content files, fixture, `ref-check`), but `AGENTS.md` still requires “relative symlinks only” and `llp-orient` still treats overlays as “symlink directories.”
+2 · VERIFIED · LLP 0009 kernel item 3 now strikes `llp/tombstones/` and cites 0011’s status-only lifecycle; 0011 states that the v1 path exemption becomes a status exemption.
+3 · PARTIAL · The rule is now “path is not lifecycle,” with grouping subdirectories valid-but-meaningless and this repo flat by choice, but the 0011 title and LLP 0000 `**Revised:**` still name the third change a “flat corpus.”
+4 · VERIFIED · LLP 0000 now defines a set-level design-recreation admission test (not a runnable tree; history is not kernel; too-small fails; never pairwise), and 0011.000 Promote steps 2, 4, and 5 restate it.
+5 · VERIFIED · The Archive staleness heuristic now globs `"llp/<full dotted number>-"*` with the dotted example `llp/0011.000-*`.
+6 · VERIFIED · Overlay entries must be relative; Root belongs in `foundation/` from the moment it is `Active`; §6 and the gated-rules paragraph allow `Superseded` in `current/` and forbid it in `foundation/`, matching `ref-check`.
+7 · VERIFIED · Alternatives considered records a different name than `current/` and keeps `current/` as an author’s choice.
+8 · VERIFIED · Numbering now leads with the filename grammar `NNNN(.NNN)*-slug.type.md`; the old “0000 through 9999” lead sentence is gone.
+
+## Concerns
+
+1. **Severity:** MATERIAL · **Scope:** IN-DELTA · **Target:** 0011.000 · **Claim:** Archive still forbids `Superseded` from both overlays, which undoes the r2 rule that a migration in progress may sit in `current/`. · **Evidence:** 0011.000 §Archive step 3: “Tombstoned and Superseded documents can't be in either overlay — unlink them.” LLP 0000 §Current and foundation: “`Superseded` documents may appear in `current/` (a migration in progress is work) but not in `foundation/`.” 0011 §Overlays: “`Superseded` allowed in `current/` because a migration is work.” · **Resolution criteria:** Restate step 3 to match the gated rules: `Tombstoned` in neither overlay; `Superseded` out of `foundation/` always, and out of `current/` only when the migration is no longer in play.
+
+2. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011.000 · **Claim:** Several 0011.000 lines still speak the r1 overlay meanings that this revision replaced. · **Evidence:** §Archive Goal: “`current/` contains exactly what someone is thinking about.” §Anti-patterns: “Current is what's being thought about”; trophy-case still uses “unrecreatable without.” §Promote Goal: “from which the project could be recreated” (no “design”). Contrast LLP 0000’s declared working set and design-recreation admission test. · **Resolution criteria:** Align those goal/anti-pattern lines with the declared-working-set and design-recreation wording, or mark them as loose slogans of that contract.
+
+3. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** context(AGENTS.md, llp-orient, llp-maintain, 0000 tree) · **Claim:** Adapter and ambient restatements were not updated to the r2 overlay representation or admission test. · **Evidence:** `AGENTS.md` §LLP documents: “hold relative symlinks only.” `skills/llp-orient/SKILL.md` §Workflow: “both are symlink directories”; “the root LLP is always there.” `skills/llp-maintain/SKILL.md` §Invariants: “admission test (unrecreatable without it).” LLP 0000 §Filesystem organization tree comments: “symlinks: what's being worked on” / “symlinks: the kernel.” · **Resolution criteria:** Restate overlays as relative links (symlink or path-content file), allow empty `foundation/` at bootstrap, and point the curate MUST at the 0000 admission test rather than the old one-line gloss.
+
+4. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011 · **Claim:** The third change is “path is not lifecycle,” but the document still brands itself as a flat-corpus RFC. · **Evidence:** Title: “Sub-LLPs, Current and Foundation Overlays, Flat Corpus.” LLP 0000 header `**Revised:**`: “sub-LLPs, overlays, flat corpus.” Contrast 0011 §Summary item 3 and §Path is not lifecycle. · **Resolution criteria:** Drop “Flat Corpus” from the title and from 0000’s revision clause, or explicitly mark flatness as this repo’s choice rather than a v2 change.
+
+5. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011.000 · **Claim:** The new conflict-check step narrows “every other binding `Active` normative document” to a parenthetical type list that omits still-binding RFCs, guides, and explainers. · **Evidence:** 0011.000 §Realign step 2: “grep the other `Active` normative documents (specs, decisions, principles outside foundation).” LLP 0000 §Curation contract: “every other binding `Active` normative document.” · **Resolution criteria:** Keep the 0000 set as the test; treat the type list as examples, or include every `Active` document that still binds.
+
+## Verdicts
+
+**0011:** READY — punch-list items on this RFC are VERIFIED or PARTIAL-but-DETAIL, and capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c` has no unresolved MATERIAL defect in 0011.
+
+**0011.000:** NOT READY — Archive step 3 still bans `Superseded` from both overlays, contradicting the r2 membership contract on capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c`.
+
+**Set:** NOT READY — 0011.000’s overlay-membership contradiction is unresolved MATERIAL on capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c`.

@@ -35,13 +35,13 @@ The `@ref` comment is a machine-readable link. An agent reviewing this function 
 
 ## Quick start
 
-**1. Create an `llp/` directory and a root document:**
+**1. Create an `llp/` directory (with `current/` and `foundation/` subdirectories) and a root document, linked into `current/` while you write it and into `foundation/` once it's `Active`:**
 
 ```markdown
 # LLP 0000: My Project
 
 **Type:** Explainer
-**Status:** Active
+**Status:** Draft
 **Systems:** Core
 **Role:** Root
 **Author:** ...

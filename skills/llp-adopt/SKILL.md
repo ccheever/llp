@@ -39,7 +39,7 @@ One entry point for "add LLP to this project" and "update the LLP skills". Invok
 
 ## Artifact
 
-Scaffold: `llp/` with empty `current/` and `foundation/`, an LLP 0000 skeleton linked into `current/`, the managed blocks. Retrofit: those plus a survey summary, `Draft` provenance-tagged document(s), and a proposed adoption plan. Install/update: pinned skill copies, the receipt, and (with the `delivery` flag) the repo policy file.
+Scaffold: `llp/` with `current/` (holding the link to the new root) and an empty `foundation/`, an LLP 0000 skeleton, the managed blocks. Retrofit: those plus a survey summary, `Draft` provenance-tagged document(s), and a proposed adoption plan. Install/update: pinned skill copies, the receipt, and (with the `delivery` flag) the repo policy file.
 
 ## Hand-offs
 

@@ -6,7 +6,7 @@
 **Role:** Root
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
-**Revised:** 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, flat corpus; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
+**Revised:** 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, path-is-not-lifecycle; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
 
 ## Summary
 
@@ -86,10 +86,10 @@ llp/
   0015-message-compression.rfc.md
   0015.000-compression-format.spec.md
   0009-legacy-sync-design.decision.md      # Status: Tombstoned — still here
-  current/                                  # symlinks: what's being worked on
+  current/                                  # links: the declared working set
     0015-message-compression.rfc.md -> ../0015-message-compression.rfc.md
     0015.000-compression-format.spec.md -> ../0015.000-compression-format.spec.md
-  foundation/                               # symlinks: the kernel
+  foundation/                               # links: the kernel
     0000-project-overview.explainer.md -> ../0000-project-overview.explainer.md
     0003-binary-protocol.explainer.md -> ../0003-binary-protocol.explainer.md
   reviews/                                  # review artifacts (LLP 0005), not LLPs

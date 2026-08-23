@@ -164,7 +164,7 @@ Sizes are rerunnable, not vibes: `wc -l llp/[0-9]*.md skills/*/SKILL.md`, minus 
 
 ## Open questions
 
-1. **Numbering under concurrency (A4).** Parallel agent fleets will collide on `max + 1`. Convention to pick when it first happens: renumber-on-merge (cheap, since anchors — not numbers — carry most references' meaning) vs. reserving ranges per branch. Defer until observed.
+1. **Numbering under concurrency (A4).** ~~Defer until observed.~~ *Answered by [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md) (2026-08-22): renumber-on-integration — branch allocations are provisional, the later-integrated document renumbers and rewrites its references (LLP 0000 §Numbering). Reserved ranges rejected.*
 2. **Does `llp-orient` eventually collapse into the one-line rule?** Measurable: when frontier runs reliably orient from the AGENTS.md sentence alone (compare context packs with and without the skill installed), the skill becomes a deletion candidate. Until measured, it stays.
 3. **`ref-check` runtime.** Stdlib Python vs. single-file Node/Deno — pick at build time for whatever this repo and likely consumers already have; the constraint is "one file, no installs," not the language.
 4. **Where does the shell's deletion log live?** Lightest viable answer: the owning document's git history plus a line in its `Revised` metadata. Anything heavier contradicts this RFC.

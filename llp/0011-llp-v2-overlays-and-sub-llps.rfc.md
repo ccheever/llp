@@ -1,16 +1,16 @@
-# LLP 0011: LLP v2 — Sub-LLPs, Current and Foundation Overlays, Flat Corpus
+# LLP 0011: LLP v2 — Sub-LLPs, Current and Foundation Overlays, Path Is Not Lifecycle
 
 **Type:** RFC
 **Status:** Review
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-08-22
-**Revised:** 2026-08-22 r2 (round-1 revision, both families' concerns folded — see Revision history) · 2026-08-22 (status corrected Accepted → Review: the initial acceptance had no review behind it; entered the LLP 0010 §2 super-refine loop with LLP 0011.000, lockstep)
+**Revised:** 2026-08-22 r3 (round-2 delta: title and compatibility wording; adapters re-synced; 0009/0010 open question closed) · 2026-08-22 r2 (round-1 revision, both families' concerns folded — see Revision history) · 2026-08-22 (status corrected Accepted → Review: the initial acceptance had no review behind it; entered the LLP 0010 §2 super-refine loop with LLP 0011.000, lockstep)
 **Related:** LLP 0000, LLP 0004, LLP 0009, LLP 0011.000
 
 ## Summary
 
-Three changes to the LLP corpus model, together called **LLP v2**. They are additive: every v1 filename, header, `@ref LLP NNNN` reference, and status value keeps its meaning; the one-time tombstone migration is the only break (see Compatibility).
+Three changes to the LLP corpus model, together called **LLP v2**. They are additive: every v1 filename, header, `@ref LLP NNNN` reference, and status value keeps its meaning; the breaks are confined to a one-time migration — moving `tombstones/` and renaming any grouping directory that collides with a reserved name (see Compatibility).
 
 1. **Sub-LLPs.** A document can be numbered under a parent — `0011.000-slug.spec.md` is the first child of `LLP 0011`, `0011.000.000-…` its grandchild — to arbitrary depth. The dotted number is the document's identity; `@ref LLP 0011.000#anchor` resolves it.
 2. **Two link overlays.** `llp/current/` is the project's declared working set — links to the documents in play; `llp/foundation/` links the small kernel of living documents from which the design could be recreated. Adding or removing a link is the whole operation.
@@ -96,6 +96,7 @@ The procedure, cadence, and checklist are [LLP 0011.000](./0011.000-curation-pas
 
 ## Revision history
 
+- **r3 (2026-08-22)** — round-2 delta revision; both families' punch-list PARTIALs and in-delta concerns folded (dispositions in the journal).
 - **r2 (2026-08-22)** — round-1 revision; every codex and grok concern folded or recorded. Per-concern dispositions: `llp/reviews/0011-…superrefine-journal.md`.
 
 ## Status

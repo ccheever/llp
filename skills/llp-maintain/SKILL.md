@@ -22,7 +22,7 @@ Before opening a PR (`pre-pr`, the common case); periodically or on suspicion (`
 
 - MUST propose, never apply: no edit, ref repair, or status change without sign-off. Output is a reviewable checklist or diff, never a mass rewrite.
 - MUST NOT classify untagged rationale claims silently — flag them for the author to mark `[observed]`/`[confirmed]`/`[inferred]`.
-- `curate` MUST run its three verbs in order — promote, archive, realign — and MUST realign the code only against `llp/foundation/`, never against the whole corpus. Promotion proposals MUST apply the admission test (unrecreatable without it), not importance.
+- `curate` MUST run its three verbs in order — promote, archive, realign — and MUST realign the code only against `llp/foundation/`, never against the whole corpus. Promotion proposals MUST apply LLP 0000's admission test (design recreatable from the set; set-level; too-small fails), not importance.
 - MUST NOT claim to be a CI gate. The deterministic, merge-blocking checks are `ref-check`'s job; this skill is the interactive, judgment-bearing complement.
 
 ## Checks
