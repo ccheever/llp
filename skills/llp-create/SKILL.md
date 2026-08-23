@@ -1,6 +1,6 @@
 ---
 name: llp-create
-description: Create a new LLP document with the next available number, the NNNN-slug.type.md filename convention, and a scaffolded metadata header — or extend an existing LLP when one already covers the topic.
+description: Create a new LLP document with the next available number (top-level NNNN or a dotted sub-LLP under a parent), the NNNN-slug.type.md filename convention, and a scaffolded metadata header, linked into llp/current/ — or extend an existing LLP when one already covers the topic.
 source: ccheever/llp@v0.3.0
 ---
 
@@ -11,7 +11,7 @@ source: ccheever/llp@v0.3.0
 
 Author one LLP in a corpus that already exists. Handles numbering, filename, and the metadata scaffold so the author can focus on content.
 
-Invoke as `/llp-create <title>`, or bare and the skill asks.
+Invoke as `/llp-create <title>`, `/llp-create --under NNNN <title>` for a sub-LLP, or bare and the skill asks.
 
 ## Trigger
 
@@ -20,14 +20,16 @@ Invoke as `/llp-create <title>`, or bare and the skill asks.
 ## Invariants
 
 - MUST check for a covering document first: `Grep` the `**Systems:**` and `**Related:**` headers across `llp/` and propose *extending* an existing LLP over creating a new one when the topic is already covered.
-- MUST derive the next number from the tree — `max(existing) + 1`, zero-padded — scanning the whole `llp/` tree including subdirectories and `tombstones/`. Numbers are never reused and never invented.
-- MUST name the file `NNNN-slug.type.md` with the lowercased type matching the header's `**Type:**`, and start every new LLP as `Draft`.
+- MUST derive the next number from the tree — top-level: `max(existing NNNN) + 1`; sub-LLP of `P`: `P.` + `max(existing children of P) + 1`, three digits from `000` — scanning all of `llp/` (excluding the `current/`, `foundation/`, `reviews/` directories). Numbers are never reused, never invented, and a parent must already exist.
+- MUST name the file `NNNN(.NNN)*-slug.type.md` with the lowercased type matching the header's `**Type:**`, put the full dotted number in the title, and start every new LLP as `Draft`.
+- MUST link the new document into `llp/current/` with a relative symlink (`ln -s ../<file> llp/current/<file>`) — new work is current by definition (LLP 0000 [Current and foundation](https://github.com/ccheever/llp/blob/v0.3.0/llp/0000-linked-literate-programming.explainer.md#current-and-foundation)).
+- MUST propose a sub-LLP, not a new top-level number, when the document refines, specifies, or plans an existing LLP (spec for an RFC → `NNNN.000-….spec.md`). Never re-parent by renaming.
 - MUST NOT overwrite an existing file — if the name collides, stop and ask.
 - MUST NOT silently pick a document type when the choice is ambiguous — propose one and confirm.
 
 ## Workflow
 
-> **Recipe (advisory)** — next number: `ls llp | grep -oE '^[0-9]{4}' | sort -n | tail -1` (+1); for nested trees glob `llp/**/[0-9]*.md` and exclude `reviews/`. Slug: lowercase, non-alphanumerics → `-`, collapse repeats, keep it under ~6 words. Type cues: proposal → `rfc`; requirements → `spec`; settled choice → `decision`; steps → `plan`; teaching → `explainer`; always/never → `principles`; how-to → `guide`; bug → `issue`; findings → `research`. Scaffold sections: Summary · Motivation · Design · Open questions (Decisions use Context/Options/Decision/Consequences; Research uses Findings/Confidence).
+> **Recipe (advisory)** — next top-level number: `ls llp | grep -oE '^[0-9]{4}' | sort -n | tail -1` (+1); next child of `0011`: `ls llp | grep -oE '^0011\.[0-9]{3}' | sort | tail -1` (+1, or `000`). Slug: lowercase, non-alphanumerics → `-`, collapse repeats, keep it under ~6 words. Type cues: proposal → `rfc`; requirements → `spec`; settled choice → `decision`; steps → `plan`; teaching → `explainer`; always/never → `principles`; how-to → `guide`; bug → `issue`; findings → `research`. Scaffold sections: Summary · Motivation · Design · Open questions (Decisions use Context/Options/Decision/Consequences; Research uses Findings/Confidence).
 
 ## Artifact
 

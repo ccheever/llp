@@ -100,7 +100,7 @@ Once an RFC is accepted: reference the LLP number in commit messages and PR desc
 
 ## Large RFCs
 
-When an RFC covers multiple independently reviewable sub-topics, use a directory: an umbrella RFC at `slug/NNNN-slug.rfc.md` (architecture, motivation, overall design) plus sub-RFCs with their own numbers from the global sequence, each accepted or tombstoned independently. All files keep the standard `NNNN-slug.type.md` shape — never an unnumbered `README.md`. Use a directory when the RFC would exceed ~800 lines *and* the sub-topics have independent timelines; don't when all parts must be accepted together.
+When an RFC covers multiple independently reviewable sub-topics, use sub-LLPs: the umbrella RFC at `NNNN-slug.rfc.md` (architecture, motivation, overall design) plus `NNNN.000-…`, `NNNN.001-…` children, each with its own status and accepted or tombstoned independently (LLP 0000 [Numbering](./0000-linked-literate-programming.explainer.md#numbering)). Split when the RFC would exceed ~800 lines *and* the sub-topics have independent timelines; don't when all parts must be accepted together. The accepted design's normative form usually becomes a `NNNN.000-….spec.md` child.
 
 ## Applicability to other LLP types
 

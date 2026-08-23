@@ -10,14 +10,18 @@ Checks (broken = exit 1):
     shape-validated only (never fetched); shorthands are listed as
     unchecked unless the project defines a mapping.
   * LLP metadata headers parse; filename type matches **Type:**;
-    LLP numbers are unique across the tree (tombstones included).
+    LLP numbers (including dotted sub-LLP numbers) are unique across the
+    tree; every sub-LLP's parent exists.
   * No [inferred] claim survives in an Accepted/Active document.
+  * Overlays: every entry in llp/current/ and llp/foundation/ is a symlink
+    to an LLP in the corpus; no Tombstoned/Superseded doc is in either;
+    foundation entries are Active.
 
 Judgment calls (stale glosses, drift, orphaned annotations) are
 deliberately not gated — that is interactive work for llp-maintain.
 Directories containing their own llp/ are separate corpus roots and are
-skipped; check them with --root. llp/tombstones/ and llp/reviews/ are
-exempt from ref validation.
+skipped; check them with --root. llp/reviews/, the overlay directories,
+and the bodies of Tombstoned documents are exempt from ref validation.
 """
 
 import argparse
@@ -29,19 +33,31 @@ SKIP_DIRS = {".git", ".hg", "node_modules", "__pycache__", ".venv", "venv",
              "dist", "build", ".next", ".idea", ".vscode"}
 REQUIRED_FIELDS = ("Type", "Status", "Systems", "Author", "Date")
 GATED_STATUSES = {"accepted", "active"}
+OVERLAYS = ("current", "foundation")          # symlink overlays under llp/
+OVERLAY_BANNED = {"tombstoned", "superseded"}  # may appear in neither overlay
+FOUNDATION_REQUIRED = {"active"}               # foundation is current truth only
+NON_DOC_DIRS = {"reviews", *OVERLAYS}
 MAX_BYTES = 2_000_000
 
 # Built by concatenation so this file doesn't match its own scan patterns.
 REF_MARK = "@" + "ref"
 CODE_REF_RE = re.compile(re.escape(REF_MARK) + r"\s+(.+)")
 MD_REF_RE = re.compile(r"<!--\s*" + re.escape(REF_MARK) + r"\s+(.+?)-->", re.DOTALL)
-LLP_TARGET_RE = re.compile(r"^LLP\s+(\d{1,4})(?:#(\S+))?$")
+# @ref LLP 0000#numbering — dotted sub-LLP numbers: 0011, 0011.000, 0011.000.002
+LLP_NUM = r"\d{1,4}(?:\.\d{3})*"
+LLP_TARGET_RE = re.compile(r"^LLP\s+(" + LLP_NUM + r")(?:#(\S+))?$")
 SHORTHAND_RE = re.compile(r"^[A-Z][A-Z0-9_]*(?:#\S+)?$")
 URL_RE = re.compile(r"^https?://[^\s/]+\.[^\s/]+\S*$")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
-LLP_FILE_RE = re.compile(r"^(\d{4})-[a-z0-9-]+\.([a-z0-9]+)\.md$")
+LLP_FILE_RE = re.compile(r"^(\d{4}(?:\.\d{3})*)-[a-z0-9-]+\.([a-z0-9]+)\.md$")
 FIELD_RE = re.compile(r"^\*\*(\w+):\*\*\s*(.+)$")
 INFERRED = "[" + "inferred]"
+
+
+def norm_num(num):
+    """Canonical LLP number: first segment zero-padded to 4 (`12.000` -> `0012.000`)."""
+    head, _, tail = num.partition(".")
+    return head.zfill(4) + (("." + tail) if tail else "")
 
 
 def slugify(text):
@@ -141,9 +157,10 @@ def check(root):
     # --- corpus: collect LLP docs, check metadata ---
     docs = {}  # number -> relpath
     headings = {}  # number -> [heading, ...]
+    statuses = {}  # number -> lowercase status word
     if os.path.isdir(llp_dir):
         for dirpath, dirnames, filenames in os.walk(llp_dir):
-            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and d != "reviews"]
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and d not in NON_DOC_DIRS]
             for name in sorted(filenames):
                 m = LLP_FILE_RE.match(name)
                 if not m:
@@ -169,16 +186,48 @@ def check(root):
                 doc_type = fields.get("Type", "").split()[0].lower() if fields.get("Type") else ""
                 if doc_type and doc_type != ftype:
                     rep.error(f"{rel}: filename type '.{ftype}.md' != **Type:** {fields['Type']}")
-                status = fields.get("Status", "").split()[0].lower()
+                status = fields.get("Status", "").split()[0].lower() if fields.get("Status") else ""
+                statuses[num] = status
                 if status in GATED_STATUSES:
                     bare = text.count(INFERRED) - text.count("`" + INFERRED)
                     if bare > 0:
                         rep.error(f"{rel}: {INFERRED} claim in {fields.get('Status')} document "
                                   f"(ratify to [confirmed] or remove before promotion)")
 
+    # @ref LLP 0000#numbering — a sub-LLP's parent must exist
+    for num, rel in sorted(docs.items()):
+        if "." in num:
+            parent = num.rsplit(".", 1)[0]
+            if parent not in docs:
+                rep.error(f"{rel}: sub-LLP {num} has no parent LLP {parent}")
+
+    # @ref LLP 0000#current-and-foundation — overlays are symlinks into llp/
+    doc_paths = {os.path.abspath(os.path.join(root, r)): n for n, r in docs.items()}
+    for overlay in OVERLAYS:
+        odir = os.path.join(llp_dir, overlay)
+        if not os.path.isdir(odir):
+            continue
+        for name in sorted(os.listdir(odir)):
+            entry = os.path.join(odir, name)
+            rel = os.path.relpath(entry, root)
+            if not os.path.islink(entry):
+                rep.error(f"{rel}: overlay entry is not a symlink (overlays hold links, not documents)")
+                continue
+            target = os.path.abspath(os.path.join(odir, os.readlink(entry)))
+            num = doc_paths.get(target)
+            if num is None:
+                rep.error(f"{rel}: dangling overlay link -> {os.readlink(entry)} (not an LLP under llp/)")
+                continue
+            st = statuses.get(num, "")
+            if st in OVERLAY_BANNED:
+                rep.error(f"{rel}: {st.capitalize()} LLP {num} may not appear in llp/{overlay}/")
+            elif overlay == "foundation" and st not in FOUNDATION_REQUIRED:
+                rep.error(f"{rel}: LLP {num} is {st or 'unknown'}; foundation entries must be Active")
+
     # --- refs: scan the tree ---
     n_files = n_refs = 0
-    exempt = (os.path.join("llp", "tombstones"), os.path.join("llp", "reviews"))
+    exempt = tuple(os.path.join("llp", d) for d in NON_DOC_DIRS)
+    tombstoned = {os.path.join(root, r) for n, r in docs.items() if statuses.get(n) == "tombstoned"}
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         if dirpath != root and "llp" in dirnames:
@@ -189,7 +238,7 @@ def check(root):
         for name in sorted(filenames):
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root)
-            if rel.startswith(exempt) or os.path.basename(rel) == "ref-check":
+            if rel.startswith(exempt) or os.path.basename(rel) == "ref-check" or full in tombstoned:
                 continue
             text = read_text(full)
             if text is None:
@@ -200,7 +249,7 @@ def check(root):
                 kind, target, anchor = parse_target(rest)
                 where = f"{rel}:{lineno}"
                 if kind == "llp":
-                    num = target.zfill(4)
+                    num = norm_num(target)
                     if num not in docs:
                         rep.error(f"{where}: broken ref: LLP {num} not found under llp/")
                     elif anchor and not anchor_resolves(anchor, headings[num]):

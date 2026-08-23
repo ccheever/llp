@@ -27,14 +27,14 @@ Start of a coding task that touches an area with documented design. The orient-f
 
 ## Workflow
 
-> **Recipe (advisory)** — read the root LLP first (systems vocabulary, where things live). `Grep '@ref'` over the files in scope and `Read` each target — these are the highest-signal context. `Grep` the `**Systems:**` headers across `llp/` for LLPs governing the subsystems touched; read the governing ones (Spec, Decision, Principles, relevant RFCs). Follow `Related:` and nearby `@ref` targets one hop out; stop there unless something is clearly load-bearing.
+> **Recipe (advisory)** — read `llp/foundation/` first (the kernel; the root LLP is always there), then skim `llp/current/` for what's in play; both are symlink directories, so `ls` answers. Then the root LLP's systems vocabulary. `Grep '@ref'` over the files in scope and `Read` each target — these are the highest-signal context. `Grep` the `**Systems:**` headers across `llp/` for LLPs governing the subsystems touched; read the governing ones (Spec, Decision, Principles, relevant RFCs). Follow `Related:` and nearby `@ref` targets one hop out; stop there unless something is clearly load-bearing.
 
 ## Artifact
 
 A context pack with these sections, faster to read than the documents it points at:
 
 - **Scope** — files / subsystems queried
-- **Governing LLPs** — numbered list, one-line gloss each
+- **Governing LLPs** — numbered list, one-line gloss each; mark which are in `foundation/` and which are in `current/` (in-flight — its guidance may still move)
 - **Active constraints** — bullets, each citing `LLP NNNN#anchor`
 - **Relevant rationale** — the *why*, same citation form
 - **Open questions / risks** for this area
