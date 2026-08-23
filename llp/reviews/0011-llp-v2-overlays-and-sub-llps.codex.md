@@ -108,3 +108,47 @@ Set — NOT READY. Capsule hash `a6836bf5644b85333634e5b1c196d7bd9eb15c16ce81ec4
 0011.000: NOT READY — Capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c` retains unresolved MATERIAL conflict-scan and archive-rule defects.
 
 Set: NOT READY — Capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c` is not coherent across the targets and governing context while these MATERIAL concerns remain.
+
+## Round 3 (delta round) — 2026-08-23
+
+**Provider / runtime:** as round 1.
+**Method:** as round 2 (`DELTA.diff` c46cdd2→b2e5fc4; own round-2 punch list only).
+**Revision reviewed:** commit `b2e5fc4` (r3); 0011 `b3adb20814597c830c8be9a017dde87cfddae1c572a485db0884877787311fd4`, 0011.000 `3d712f89f94c706e9f32a92cc0dca790aed341d170769cce85b97a1dd0574b4a`; capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
+
+### Review (verbatim)
+
+## Punch list verification
+
+1 · VERIFIED · Archive step 3, its goal, and the anti-pattern now consistently reflect declared-working-set semantics.
+
+2 · VERIFIED · The conflict check now covers every binding `Active` document, regardless of type or overlay membership.
+
+3 · VERIFIED · `AGENTS.md` and `llp-orient` now support both relative symlinks and path-content files and correctly describe bootstrap placement.
+
+4 · VERIFIED · `llp-create` now requires consulting deleted-document history when allocating numbers.
+
+5 · PARTIAL · The Summary names both migration breaks, but Compatibility still calls tombstone relocation “the one breaking change.”
+
+6 · PARTIAL · LLP 0009 OQ1 is answered and LLP 0010 is updated, but LLP 0009’s A4 row still calls concurrency an “open question.”
+
+7 · VERIFIED · README and `llp-adopt` now create both overlays, place the `Draft` root in `current/`, and leave `foundation/` empty until activation.
+
+8 · PARTIAL · Contract labels and the `llp-maintain` admission-test wording landed, but Promote step 6 still restates a contract without the promised marker.
+
+9 · VERIFIED · The worked example now correctly identifies LLP 0009 as an `Active` RFC.
+
+## Concerns
+
+1. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011 · **Claim:** Compatibility remains internally inconsistent about the number of migration breaks. · **Evidence:** `llp/0011-llp-v2-overlays-and-sub-llps.rfc.md`, “Summary” names two breaks, while “Compatibility” calls moving `tombstones/` “the one breaking change.” · **Resolution criteria:** Describe tombstone relocation as one of the migration breaks or otherwise reconcile the count.
+
+2. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** context(0009) · **Claim:** Closing OQ1 left earlier text and revision metadata stale. · **Evidence:** `llp/0009-capability-invariant-core.rfc.md`, “Model assumptions” A4 still says concurrency is an “open question,” while “Open questions” marks it answered on 2026-08-22 and the `Revised` header remains 2026-07-23. · **Resolution criteria:** Update A4 and the revision metadata to reflect the LLP 0011 resolution.
+
+3. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011.000 · **Claim:** The new contract-marker convention is applied incompletely. · **Evidence:** `llp/0011.000-curation-pass.guide.md`, “Promote” says contract-restating steps are marked `(contract)`, but step 6 restates the foundation-`Active` gate without that marker. · **Resolution criteria:** Mark every contract restatement consistently or narrow the marker convention’s claim.
+
+## Verdicts
+
+0011: READY — Bound to capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`; its remaining inconsistency is DETAIL-only and no MATERIAL concern remains.
+
+0011.000: READY — Bound to capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`; its incomplete labeling is DETAIL-only and no MATERIAL concern remains.
+
+Set: READY — Bound to capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`; every punch item is VERIFIED or PARTIAL-but-DETAIL and no unresolved MATERIAL concern remains.

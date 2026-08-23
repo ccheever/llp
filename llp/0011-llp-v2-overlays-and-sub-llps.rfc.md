@@ -5,7 +5,7 @@
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-08-22
-**Revised:** 2026-08-22 r3 (round-2 delta: title and compatibility wording; adapters re-synced; 0009/0010 open question closed) · 2026-08-22 r2 (round-1 revision, both families' concerns folded — see Revision history) · 2026-08-22 (status corrected Accepted → Review: the initial acceptance had no review behind it; entered the LLP 0010 §2 super-refine loop with LLP 0011.000, lockstep)
+**Revised:** 2026-08-23 r4 (post-convergence DETAIL folds — **unreviewed**; verdicts bind to r3) · 2026-08-22 r3 (round-2 delta: title and compatibility wording; adapters re-synced; 0009/0010 open question closed) · 2026-08-22 r2 (round-1 revision, both families' concerns folded — see Revision history) · 2026-08-22 (status corrected Accepted → Review: the initial acceptance had no review behind it; entered the LLP 0010 §2 super-refine loop with LLP 0011.000, lockstep)
 **Related:** LLP 0000, LLP 0004, LLP 0009, LLP 0011.000
 
 ## Summary
@@ -72,7 +72,7 @@ The procedure, cadence, and checklist are [LLP 0011.000](./0011.000-curation-pas
 | `@ref LLP NNNN#anchor` | Unchanged. |
 | Metadata header | Unchanged; no new required fields. |
 | `Status:` values | Unchanged set; `Tombstoned` loses its "lives under `tombstones/`" clause. |
-| `llp/tombstones/` | Removed. Files move to `llp/` **once**, keeping their numbers — the one breaking change: path-form `@ref`s and markdown links into `tombstones/` must be rewritten in the migration commit (`ref-check` catches the former; grep for the latter). The path exemption becomes a status exemption. |
+| `llp/tombstones/` | Removed. Files move to `llp/` **once**, keeping their numbers — the first of the two migration breaks (the other is the reserved-name row below): path-form `@ref`s and markdown links into `tombstones/` must be rewritten in the migration commit (`ref-check` catches the former; grep for the latter). The path exemption becomes a status exemption. |
 | Reserved names | `current/`, `foundation/` join `reviews/`; a v1 corpus using either as a grouping directory must rename it before adopting v2. |
 | LLP 0005 umbrella-RFC directories | Replaced by sub-numbering. Existing directory layouts keep validating. |
 | LLP 0009 kernel item 3 | Amended: lifecycle is status-only; "tombstones under `llp/tombstones/`" no longer holds (noted in 0009). |
@@ -96,6 +96,7 @@ The procedure, cadence, and checklist are [LLP 0011.000](./0011.000-curation-pas
 
 ## Revision history
 
+- **r4 (2026-08-23, unreviewed)** — the five DETAIL residues from round 3 (break count wording; 0009 A4 + Revised; `(contract)` markers on Promote 6 and Archive 3; `llp-create` child allocator restored, recipe exclusions). Both families' READY verdicts bind to r3 (`b2e5fc4`), not to this revision.
 - **r3 (2026-08-22)** — round-2 delta revision; both families' punch-list PARTIALs and in-delta concerns folded (dispositions in the journal).
 - **r2 (2026-08-22)** — round-1 revision; every codex and grok concern folded or recorded. Per-concern dispositions: `llp/reviews/0011-…superrefine-journal.md`.
 

@@ -5,7 +5,7 @@
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-06-10
-**Revised:** 2026-07-23 (distribution machinery reclassified per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md) — see Addendum. Earlier: 2026-06-10, post GPT-family review — see `llp/reviews/0009-capability-invariant-core.gpt.md`; accepted by the author and implemented the same day)
+**Revised:** 2026-08-23 (OQ1 marked answered by LLP 0011; A4 note) · 2026-07-23 (distribution machinery reclassified per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md) — see Addendum. Earlier: 2026-06-10, post GPT-family review — see `llp/reviews/0009-capability-invariant-core.gpt.md`; accepted by the author and implemented the same day)
 **Related:** LLP 0000, LLP 0003, LLP 0004, LLP 0005, LLP 0008
 
 ## Summary
@@ -39,7 +39,7 @@ These are the assumptions this design is built against. Stating them makes the d
 | A1 | Agents locate and read relevant docs from minimal pointers, unprompted | Orientation needs a one-line ambient rule, not elaborate retrieval scaffolding |
 | A2 | Mechanical tasks (numbering, formatting, anchor checks) are near-perfect in-context | Pipeline recipes become advisory hints, not architecture |
 | A3 | Context is corpus-scale and cheap; cost ceases to be the argument for thin pointers | "Pointers, not prose" survives on signal/curation grounds only |
-| A4 | Agents run long-horizon and in parallel fleets | Drift accelerates; co-evolution and deterministic CI checks *appreciate*; doc numbering meets concurrency (open question) |
+| A4 | Agents run long-horizon and in parallel fleets | Drift accelerates; co-evolution and deterministic CI checks *appreciate*; doc numbering meets concurrency (answered: renumber-on-integration, LLP 0011) |
 | A5 | Confabulated rationale becomes indistinguishable from real rationale by inspection | Provenance and multi-model review *appreciate* |
 | A6 | **The epistemic gap is permanent:** no capability recovers unrecorded decisions, external constraints, or rejected alternatives | The corpus + `@ref` is the durable product; this is the only assumption the kernel bets on |
 | A7 | Harnesses, skill formats, and slash commands keep churning across generations | Durable value lives in plain markdown in the repo; skills are thin per-runtime adapters, never the home of policy |

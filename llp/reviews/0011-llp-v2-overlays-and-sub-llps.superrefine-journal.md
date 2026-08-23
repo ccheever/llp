@@ -36,3 +36,13 @@ Growth at r3: 0011 +30%, 0011.000 +40% over r1 bytes — the r3 delta is Revised
 - Launched 2026-08-23. Revision: commit `b2e5fc4` (r3). Target hashes: 0011 `b3adb20814597c830c8be9a017dde87cfddae1c572a485db0884877787311fd4`; 0011.000 `3d712f89f94c706e9f32a92cc0dca790aed341d170769cce85b97a1dd0574b4a`.
 - Capsule: tree at b2e5fc4 minus `llp/reviews/`, plus `OVERLAYS.txt` and `DELTA.diff` (c46cdd2→b2e5fc4, whole tree minus reviews). Capsule hash `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`. Instructions hash `a48faeced24b91f443cf07dd5b172d15036199f93d6e367e84f790278d4c0ebf`. Per-family round-2 punch lists only.
 - Same runners/models/efforts. Prompt hashes: codex `754dca12189d84c9a63b47e6a2f64e923e005bdf948d76b81ff6fbc987e4940c`, grok `820e8d9d5434998b6541c8d7a457aba62f38b49d05b2db74ec7ada8a244025ae`. Launches: codex #3, grok #3.
+- Verdicts on b2e5fc4: **grok READY / READY / set READY** (punch list 6/6 VERIFIED; 2 DETAIL). **codex READY / READY / set READY** (punch list 6 VERIFIED, 3 PARTIAL-as-DETAIL; 3 DETAIL). Capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
+
+## Final report — CONVERGED (dual READY on one revision)
+
+- **Binding revision:** r3, commit `b2e5fc4` — 0011 `b3adb20814597c830c8be9a017dde87cfddae1c572a485db0884877787311fd4`, 0011.000 `3d712f89f94c706e9f32a92cc0dca790aed341d170769cce85b97a1dd0574b4a`. Both families' final verdicts bind to this hash vector.
+- **Rounds:** 3 of budget 3 (1 full + 2 delta). Launches: codex 3/6, grok 3/6; no voids, no failed launches. Trajectory: r1 grok READY / codex NOT READY (8 MAT) → r2 grok 0011 READY, 0011.000 NOT READY (1 MAT) / codex NOT READY (7 MAT, all in-delta consistency) → r3 dual READY.
+- **Later unreviewed revision exists:** r4 (this commit) folds the five round-3 DETAIL residues — 0011 Compatibility break-count wording; 0009 A4 row + Revised; `(contract)` markers on 0011.000 Promote 6 and Archive 3; `llp-create` child allocator wording and recipe exclusions. Sentence-scale; no normative change. Labeled unreviewed in both targets' `Revised:` lines.
+- **Altitude dispositions:** none needed — no concern was dismissed as detail-only; every DETAIL was folded.
+- **Growth:** 0011 +30%, 0011.000 +40% over r1 bytes (disclosed in rounds 2–3; over the ~20% guideline, substance requested by both families).
+- **Proposed next step:** author sets 0011 and 0011.000 to `Accepted`/`Active` respectively (this loop never applies that); then run the first real `llp-maintain --intent curate` pass on this corpus — the RFC's stated proof obligation — and cut v0.4.0 so the revised skills are installable.

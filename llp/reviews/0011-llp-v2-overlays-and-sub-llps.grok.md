@@ -88,3 +88,34 @@ I'll read the offloaded prompt file so the review can follow the required format
 **0011.000:** NOT READY — Archive step 3 still bans `Superseded` from both overlays, contradicting the r2 membership contract on capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c`.
 
 **Set:** NOT READY — 0011.000’s overlay-membership contradiction is unresolved MATERIAL on capsule `214b70aed287970243017f7215fd2d2cd3507ac47de306f448edefff08c99a0c`.
+
+## Round 3 (delta round) — 2026-08-23
+
+**Provider / runtime:** as round 1.
+**Method:** as round 2 (`DELTA.diff` c46cdd2→b2e5fc4; own round-2 punch list only). *Orchestrator note:* prompt offloaded/read back via `read_file` (5 calls, own prompt file only).
+**Revision reviewed:** commit `b2e5fc4` (r3); 0011 `b3adb20814597c830c8be9a017dde87cfddae1c572a485db0884877787311fd4`, 0011.000 `3d712f89f94c706e9f32a92cc0dca790aed341d170769cce85b97a1dd0574b4a`; capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
+
+### Review (verbatim)
+
+I'll read the offloaded prompt file and review against the punch list and delta, with no other tools.Continuing through the rest of the prompt so I have the full documents and the punch-list dispositions.Still gathering remaining governing docs and the rest of the delta.## Punch list verification
+
+1. · VERIFIED · Archive step 3 now unlinks only `Tombstoned` from both overlays and lets `Superseded` remain in `current/` during migration; the Archive goal and “to-do list” anti-pattern use declared-working-set wording, not “thinking about.”
+2. · VERIFIED · Realign step 2 now greps every binding `Active` document, of any type, inside or outside `foundation/`; 0011’s Realign verb matches that scope.
+3. · VERIFIED · `AGENTS.md` and `llp-orient` describe relative links in either form (symlink or path-content file); a `Draft` root lives in `current/` until `Active` (`llp-adopt`, README Quick start, 0011 Compatibility).
+4. · VERIFIED · 0011’s title is “Path Is Not Lifecycle” and 0000’s `Revised` line says `path-is-not-lifecycle`; “Flat Corpus” is gone from both.
+5. · VERIFIED · Adapters were re-synced: `llp-create` (history-aware allocation + either link form), `llp-orient` (link form + Draft root), `llp-adopt` (root linked in `current/`, empty `foundation/`), `llp-maintain` (0000 admission test), `AGENTS.md` / README.
+6. · VERIFIED · `llp-maintain` `curate` MUST now requires LLP 0000’s admission test (design recreatable from the set; set-level; too-small fails), not “unrecreatable without it” / importance.
+
+## Concerns
+
+1. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** 0011.000 · **Claim:** The new local `(contract)` markers are not applied to Archive step 3, which restates 0000’s gated overlay-membership rules (the r2 fold this revision just landed). · **Evidence:** 0011.000 Promote: “Steps that restate the LLP 0000 contract are marked **(contract)**; the rest is recipe.” Realign steps 2 and 5 are marked; Archive step 3 (“`Tombstoned` documents can’t be in either overlay… `Superseded` documents may stay in `current/`… never in `foundation/`”) is unmarked. · **Resolution criteria:** Mark Archive step 3 `(contract)`, or state that the Promote-only note does not classify Archive/Realign.
+
+2. **Severity:** DETAIL · **Scope:** IN-DELTA · **Target:** context(`skills/llp-create`) · **Claim:** The rewritten numbering MUST drops the explicit child-allocator (`max(children of P)+1`) and the advisory recipe does not exclude overlay directories the MUST excludes. · **Evidence:** `llp-create` Invariants: “MUST derive the next number as `max(ever allocated) + 1` — top-level `NNNN`, or for a sub-LLP of `P`: `P.` + three digits from `000`.” Recipe: `find llp -name '[0-9]*.md' -not -path 'llp/reviews/*'` — no exclusion of `current/` or `foundation/`. 0000 Numbering still states creation-order children under the parent. · **Resolution criteria:** Restore `P.` + `max(ever allocated children of P)+1` in the MUST, and make the recipe’s scan match the MUST’s exclusions.
+
+## Verdicts
+
+**0011:** READY — punch-list items that land in this RFC (title, compatibility wording, declared working set, numbering close of 0009 OQ1) match the text; no unresolved MATERIAL concern on capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
+
+**0011.000:** READY — Archive membership, conflict-check scope, admission-test wording, and 0009 example match the claimed folds; remaining residue is DETAIL marking/precision, not a defective decision, on capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
+
+**Set:** READY — punch list is correctly dispositioned (all VERIFIED) and the r3 diff introduces no MATERIAL contradiction among 0011, 0011.000, 0000, adapters, or `ref-check` on capsule `06e55b9fb3f8d12ef571eeb941944a25b9ffa9443d8ec2ca898e36193a2f1da4`.
