@@ -76,7 +76,7 @@ The full workflow (greenfield and retrofit) is in [LLP 0001](./llp/0001-adopting
 Seven skills cover the LLP loop — each a plain-markdown directory under [`skills/`](./skills/) with a `SKILL.md` contract (trigger · invariants · artifact · hand-offs). Claude Code consumes them directly; other agent tools can adopt the same shape. The managed way in is `/llp-adopt`, whose install step copies skills **from a tagged release** and writes a receipt so `/llp-adopt update` can later diff and update them without clobbering local edits ([LLP 0010.000](./llp/0010.000-skill-installation-and-updates.spec.md)). The install unit is a profile: **core** (the five below) plus opt-in flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`). Hand-copying still works:
 
 ```bash
-git clone --branch v0.5.0 --depth 1 https://github.com/ccheever/llp
+git clone --branch v0.5.1 --depth 1 https://github.com/ccheever/llp
 cp -r llp/skills/llp-orient ~/.claude/skills/   # or all of skills/
 ```
 
