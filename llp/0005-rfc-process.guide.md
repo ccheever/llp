@@ -5,7 +5,7 @@
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
-**Revised:** 2026-07-23 (formal-loop authorization sentence added, per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md). Earlier: 2026-06-10, review intensity made stakes-scaled and author-judged, per [LLP 0009](./0009-capability-invariant-core.rfc.md))
+**Revised:** 2026-08-23 (honesty rules moved to LLP 0000 §Review honesty) · 2026-07-23 (formal-loop authorization sentence added, per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md). Earlier: 2026-06-10, review intensity made stakes-scaled and author-judged, per [LLP 0009](./0009-capability-invariant-core.rfc.md))
 **Related:** LLP 0000, LLP 0004, LLP 0010
 
 ## Summary
@@ -65,12 +65,7 @@ A single author — human or AI — has blind spots, and different model familie
 
 ## Honesty rules (always in force)
 
-However much or little review a document gets, these are fixed:
-
-- **Never fabricate a review.** A review that didn't happen is never recorded, summarized, or counted — by a human or an agent.
-- **Reviews that happen leave artifacts** (below), so future readers can see what was raised and how it was addressed.
-- **Reviewers advise; the author decides.** Nobody accepts or rejects on the author's behalf.
-- **Sending content to an external model is an explicit human action**, never automatic; redact secrets and prefer a local runner for sensitive material. An author's explicit invocation of a formal review loop (e.g. `/llp-super-refine`, [LLP 0010 §2](./0010-skill-install-super-refine-ship.rfc.md#2-llp-super-refine)) constitutes the `Review` opt-in and authorizes the loop's revisions within its disclosed budget; the loop's external-model sends require authorization from a human with repository-disclosure authority — supplied by the same invocation when the invoker holds both capacities.
+The four honesty rules — never fabricate a review; reviews leave artifacts; reviewers advise, the author decides; external sends are an explicit human action, with the formal-loop authorization sentence — are **contract and live in LLP 0000 [Review honesty](./0000-linked-literate-programming.explainer.md#review-honesty)** (folded there 2026-08-23 so the kernel carries them; this guide is the recipe around them). They apply however much or little review a document gets.
 
 ## Review artifacts
 

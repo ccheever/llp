@@ -6,7 +6,7 @@
 **Role:** Root
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
-**Revised:** 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, path-is-not-lifecycle; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
+**Revised:** 2026-08-23 (review honesty rules folded in from LLP 0005, first LLP 0011.000 curation pass) · 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, path-is-not-lifecycle; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
 
 ## Summary
 
@@ -308,6 +308,15 @@ When modifying code that carries a `@ref`: check whether the referenced section 
 ### Contracts and recipes
 
 Corpus content is either **contract** — normative statements of what must be true (document shapes, the reference grammar, lifecycle rules, behavioral protocols) — or **recipe** — advisory how-to that exists because it currently helps (pipelines, scaffolds, worked prompts). Recipes are marked with a `> **Recipe (advisory)**` blockquote and are safe to skip for runtimes that don't need them; they are deleted when the failure they prevent stops being observed. The sorting rule is [LLP 0004's capability test](./0004-design-principles.principles.md#the-capability-test).
+
+### Review honesty
+
+However much or little review a document gets (LLP 0005 scales that to stakes), these rules are fixed:
+
+- **Never fabricate a review.** A review that didn't happen is never recorded, summarized, or counted — by a human or an agent.
+- **Reviews that happen leave artifacts** under `llp/reviews/` (format: LLP 0005), so future readers can see what was raised and how it was addressed.
+- **Reviewers advise; the author decides.** Nobody accepts or rejects on the author's behalf.
+- **Sending content to an external model is an explicit human action**, never automatic; redact secrets and prefer a local runner for sensitive material. An author's explicit invocation of a formal review loop (e.g. `/llp-super-refine`, [LLP 0010.001](./0010.001-super-refine-loop.spec.md)) constitutes the `Review` opt-in and authorizes the loop's revisions within its disclosed budget; the loop's external-model sends require authorization from a human with repository-disclosure authority — supplied by the same invocation when the invoker holds both capacities.
 
 ### Provenance for generated rationale
 

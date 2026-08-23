@@ -36,3 +36,10 @@ REALIGN (foundation = 0000, 0004)
 ```
 
 Next pass: after the 0010 extraction decision, or before the next release.
+
+## Applied (Charlie's decision, same day)
+
+- 0011 `Accepted` → `Active`.
+- 0005 honesty rules folded into LLP 0000 §Review honesty; 0005 now points there and stays a recipe guide (not promoted).
+- 0010 §1–§3 normative surface extracted verbatim to **0010.000** (install/update), **0010.001** (super-refine loop, incl. both addenda and the dated instantiation), **0010.002** (ship); all three `Active` and linked into `foundation/`. 0010 slimmed to rationale/alternatives/history with "the spec governs" precedence; its missing §3 heading restored (the `#3-llp-ship` pinned URL in `llp-ship`'s SKILL.md had been dangling). Skill citations now point at the specs and at 0000 §Review honesty.
+- Foundation after the pass: 0000, 0004, 0010.000, 0010.001, 0010.002. Set-level check: the binding constraints on the skills, the corpus shape, the lifecycle, and review honesty are all reachable from `ls llp/foundation`.

@@ -7,7 +7,7 @@ source: ccheever/llp@v0.4.0
 # llp-adopt
 
 <!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0001-adopting-llp.guide.md — the workflow this automates -->
-<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0010-skill-install-super-refine-ship.rfc.md#1-installation-and-updates-llp-adopt-extended — install/update design, receipts, trust model -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0010.000-skill-installation-and-updates.spec.md — install/update design, receipts, trust model -->
 <!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0000-linked-literate-programming.explainer.md#provenance-for-generated-rationale — tagging rules for generated docs -->
 
 One entry point for "add LLP to this project" and "update the LLP skills". Invoke as `/llp-adopt` (auto-detect scaffold/retrofit), `--mode scaffold` / `--mode retrofit`, or `/llp-adopt update`.
@@ -25,7 +25,7 @@ One entry point for "add LLP to this project" and "update the LLP skills". Invok
 - MUST NOT create a batch of speculative LLPs in either mode; establish orientation and the loop, then hand off.
 - When a tool expects `CLAUDE.md`, symlink it to `AGENTS.md` when safe rather than maintaining divergent copies.
 
-## Invariants — install and update (LLP 0010 §1)
+## Invariants — install and update (LLP 0010.000)
 
 - MUST install only from a tagged release (the tag's tree is the release), as copies never symlinks, and write a receipt beside the installation: origin, tag, resolved commit, profile flags (core; `review-plus`; `delivery`, which also records the repo's delivery policy in repo-local config), and a per-file content hash. The receipt — not `source:` frontmatter — is the trust root for updates.
 - MUST confirm before writing user/global skill directories (they affect every repo for that user); project-local may proceed more freely.

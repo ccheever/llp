@@ -6,7 +6,7 @@ source: ccheever/llp@v0.4.0
 
 # llp-review
 
-<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0005-rfc-process.guide.md#honesty-rules-always-in-force — the rules this enforces -->
+<!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0000-linked-literate-programming.explainer.md#review-honesty — the rules this enforces -->
 <!-- @ref https://github.com/ccheever/llp/blob/v0.4.0/llp/0005-rfc-process.guide.md#review-artifacts — artifact + provenance header format -->
 
 Review an LLP the way LLP 0005 prescribes: as much critical review as the stakes warrant, captured honestly. Different model families catch different blind spots, so a single session cannot stand in for a multi-family loop — this skill makes the honest path the only path.

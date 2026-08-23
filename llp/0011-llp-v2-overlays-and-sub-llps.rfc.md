@@ -1,7 +1,7 @@
 # LLP 0011: LLP v2 — Sub-LLPs, Current and Foundation Overlays, Path Is Not Lifecycle
 
 **Type:** RFC
-**Status:** Accepted
+**Status:** Active
 **Systems:** LLP
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-08-22
@@ -102,4 +102,4 @@ The procedure, cadence, and checklist are [LLP 0011.000](./0011.000-curation-pas
 
 ## Status
 
-Designed 2026-08-22 and implemented the same day ahead of review. Refined through a three-round LLP 0010 §2 loop (codex `gpt-5.6-sol` + `grok-4.6`), converging dual-READY on r3 (`b2e5fc4`); **Accepted 2026-08-23 by Charlie Cheever** on that recommendation (artifacts: `llp/reviews/0011-*`). The remaining proof obligation is the curation passes on this corpus — the first ran the same day.
+Designed 2026-08-22 and implemented the same day ahead of review. Refined through a three-round LLP 0010 §2 loop (codex `gpt-5.6-sol` + `grok-4.6`), converging dual-READY on r3 (`b2e5fc4`); **Accepted 2026-08-23 by Charlie Cheever** on that recommendation, and `Active` the same day (the implementation had already landed — LLP 0005 defines `Accepted` as code-not-yet-written) (artifacts: `llp/reviews/0011-*`). The remaining proof obligation is the curation passes on this corpus — the first ran the same day.

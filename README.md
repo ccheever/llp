@@ -73,7 +73,7 @@ The full workflow (greenfield and retrofit) is in [LLP 0001](./llp/0001-adopting
 
 ## Skills
 
-Seven skills cover the LLP loop — each a plain-markdown directory under [`skills/`](./skills/) with a `SKILL.md` contract (trigger · invariants · artifact · hand-offs). Claude Code consumes them directly; other agent tools can adopt the same shape. The managed way in is `/llp-adopt`, whose install step copies skills **from a tagged release** and writes a receipt so `/llp-adopt update` can later diff and update them without clobbering local edits ([LLP 0010 §1](./llp/0010-skill-install-super-refine-ship.rfc.md)). The install unit is a profile: **core** (the five below) plus opt-in flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`). Hand-copying still works:
+Seven skills cover the LLP loop — each a plain-markdown directory under [`skills/`](./skills/) with a `SKILL.md` contract (trigger · invariants · artifact · hand-offs). Claude Code consumes them directly; other agent tools can adopt the same shape. The managed way in is `/llp-adopt`, whose install step copies skills **from a tagged release** and writes a receipt so `/llp-adopt update` can later diff and update them without clobbering local edits ([LLP 0010.000](./llp/0010.000-skill-installation-and-updates.spec.md)). The install unit is a profile: **core** (the five below) plus opt-in flags **review-plus** (`llp-super-refine`) and **delivery** (`llp-ship`). Hand-copying still works:
 
 ```bash
 git clone --branch v0.4.0 --depth 1 https://github.com/ccheever/llp
@@ -105,6 +105,7 @@ A skill is a directory with a `SKILL.md`: YAML frontmatter (`name`, `description
 - **The skills design:** [LLP 0008](./llp/0008-distributed-agent-skills.rfc.md).
 - **Why it's this simple:** [LLP 0009](./llp/0009-capability-invariant-core.rfc.md) — the capability-invariant core, and what was cut to get here.
 - **LLP v2 — sub-LLPs, `current/` and `foundation/`:** [LLP 0011](./llp/0011-llp-v2-overlays-and-sub-llps.rfc.md), and the curation pass in [LLP 0011.000](./llp/0011.000-curation-pass.guide.md).
+- **The skill contracts (foundation):** [LLP 0010.000](./llp/0010.000-skill-installation-and-updates.spec.md) install/update · [LLP 0010.001](./llp/0010.001-super-refine-loop.spec.md) super-refine · [LLP 0010.002](./llp/0010.002-ship.spec.md) ship — rationale in [LLP 0010](./llp/0010-skill-install-super-refine-ship.rfc.md).
 
 All documents live flat under [`llp/`](./llp/); [`llp/foundation/`](./llp/foundation/) links the kernel and [`llp/current/`](./llp/current/) links what's in play ([LLP 0011](./llp/0011-llp-v2-overlays-and-sub-llps.rfc.md)); skills under [`skills/`](./skills/); the checker is [`ref-check`](./ref-check) with its fixture under [`fixtures/`](./fixtures/).
 
