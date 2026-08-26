@@ -14,3 +14,7 @@ jobs:
         run: ./ref-check --verbose
       - name: The broken-ref fixture must fail
         run: "! ./ref-check --root fixtures/broken-ref"
+      - name: Nested package corpus is skipped by the parent
+        run: ./ref-check --root fixtures/nested-package
+      - name: Nested package corpus fails when checked as its own root
+        run: "! ./ref-check --root fixtures/nested-package/packages/mod"

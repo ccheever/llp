@@ -6,7 +6,7 @@
 **Role:** Root
 **Author:** Charlie Cheever / Claude
 **Date:** 2026-04-01
-**Revised:** 2026-08-23 (review honesty rules folded in from LLP 0005, first LLP 0011.000 curation pass) · 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, path-is-not-lifecycle; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
+**Revised:** 2026-08-25 (nested `llp/` is a separate corpus; scoped adoption in [LLP 0001](./0001-adopting-llp.guide.md)) · 2026-08-23 (review honesty rules folded in from LLP 0005, first LLP 0011.000 curation pass) · 2026-08-22 (LLP v2 per [LLP 0011](./0011-llp-v2-overlays-and-sub-llps.rfc.md): sub-LLPs, overlays, path-is-not-lifecycle; earlier simplified per [LLP 0009](./0009-capability-invariant-core.rfc.md), absorbed LLP 0006)
 
 ## Summary
 
@@ -260,6 +260,8 @@ No relation means a general association — the default and most common case. Ad
 ./ref-check --root X   # check another tree
 ```
 
+A nested directory that contains its own `llp/` is a **separate corpus**. The walk skips it (including that directory's source); check it with `./ref-check --root <that-directory>`. Numbers are local to each root.
+
 **What it checks, per target form:** `LLP NNNN[#anchor]` — the document exists and, when given, the anchor heading exists. `path[#anchor]` — the file exists (any type); anchors are checked in markdown targets and reported `unchecked` for non-text formats. Shorthands — listed as unchecked unless the project defines a mapping. URLs — shape-validated, never fetched. **Corpus-wide:** metadata headers parse; the filename's `type` matches `**Type:**`; LLP numbers (dotted included) are unique and every sub-LLP's parent exists; overlay entries are relative links to LLPs under `llp/` (symlink or path-content file), no `Tombstoned` document is in an overlay, no `Superseded` document is in `foundation/`, and `foundation/` entries are `Active` (see [Current and foundation](#current-and-foundation)); a malformed `LLP`-prefixed target (`LLP 0011.00`, `LLP 10000`) is an error, not an unchecked shorthand; no `[inferred]` claim survives in an `Accepted`/`Active` document (see [Provenance](#provenance-for-generated-rationale)).
 
 **Severity:** broken references, malformed metadata, duplicate or orphaned numbers, overlay violations, and `[inferred]`-past-`Draft` exit non-zero. Anything requiring judgment — stale glosses, orphaned annotations, doc/code drift — is deliberately *not* gated; that's interactive work for an agent plus a human (the `llp-maintain` skill).
@@ -387,7 +389,7 @@ def get_db_pool(config: DBConfig) -> ConnectionPool:
 
 ## Adopting LLP
 
-The adoption workflow — greenfield scaffolding and brownfield retrofit — lives in [LLP 0001](./0001-adopting-llp.guide.md), and the `llp-adopt` skill automates it. The principles in brief: don't over-annotate volatile early code; boy-scout-rule references in as you touch files; start with module-level refs for orientation; write LLPs when you actually make decisions, not preemptively; start flat and add structure when warranted.
+The adoption workflow — greenfield scaffolding and brownfield retrofit — lives in [LLP 0001](./0001-adopting-llp.guide.md), and the `llp-adopt` skill automates it. The unit of adoption is a directory (package, app, or repo), not automatically the git root; retrofit interviews the maintainer before drafting ([LLP 0001.000](./0001.000-retrofit-interview.guide.md)). The principles in brief: don't over-annotate volatile early code; boy-scout-rule references in as you touch files; start with module-level refs for orientation; write LLPs when you actually make decisions, not preemptively; start flat and add structure when warranted.
 
 ## Non-goals
 
