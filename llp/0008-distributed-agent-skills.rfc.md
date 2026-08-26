@@ -5,12 +5,12 @@
 **Systems:** LLP, Agents
 **Author:** Charlie Cheever / Codex
 **Date:** 2026-06-08
-**Revised:** 2026-07-23 (distribution loop closed per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md): `llp-adopt` gains an install step and update mode backed by tagged releases and per-installation receipts; the skill set grows to seven as core-plus-flags. Earlier: 2026-06-10, revised down to its surviving decisions per [LLP 0009](./0009-capability-invariant-core.rfc.md) — the `llp-spec:` namespace, mechanics-recipe layer, provenance machinery, and fixture-harness plans were cut; see that RFC's cuts table)
+**Revised:** 2026-08-25 (retrofit golden path is survey → interview → draft; scoped package adoption per [LLP 0001](./0001-adopting-llp.guide.md)) · 2026-07-23 (distribution loop closed per [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md): `llp-adopt` gains an install step and update mode backed by tagged releases and per-installation receipts; the skill set grows to seven as core-plus-flags. Earlier: 2026-06-10, revised down to its surviving decisions per [LLP 0009](./0009-capability-invariant-core.rfc.md) — the `llp-spec:` namespace, mechanics-recipe layer, provenance machinery, and fixture-harness plans were cut; see that RFC's cuts table)
 **Related:** LLP 0000, LLP 0001, LLP 0004, LLP 0005, LLP 0009, LLP 0010
 
 ## Summary
 
-LLP ships a small set of first-party **agent skills** — plain-markdown `SKILL.md` files under `skills/` — that make recurring LLP workflows repeatable across projects and agent runtimes. A **core** of five covers the loop: `llp-orient` (load governing context before coding), `llp-create` (author one LLP), `llp-review` (run the LLP 0005 loop honestly), `llp-adopt` (bring LLP to any repo — and install/update the skills themselves), and `llp-maintain` (drift, refs, provenance, retirement — propose, never apply). Two opt-in flags add `llp-super-refine` (dual-family refine-until-ready) and `llp-ship` (tasks done end to end) — see [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md).
+LLP ships a small set of first-party **agent skills** — plain-markdown `SKILL.md` files under `skills/` — that make recurring LLP workflows repeatable across projects and agent runtimes. A **core** of five covers the loop: `llp-orient` (load governing context before coding), `llp-create` (author one LLP), `llp-review` (run the LLP 0005 loop honestly), `llp-adopt` (bring LLP to any repo or package — and install/update the skills themselves), and `llp-maintain` (drift, refs, provenance, retirement — propose, never apply). Two opt-in flags add `llp-super-refine` (dual-family refine-until-ready) and `llp-ship` (tasks done end to end) — see [LLP 0010](./0010-skill-install-super-refine-ship.rfc.md).
 
 Two decisions shape the design:
 
@@ -48,7 +48,7 @@ Each skill is a contract: *Trigger · Invariants · Artifact · Hand-offs*. Reci
 | **`llp-orient`** | before touching a subsystem with documented design — carried by the `AGENTS.md` rule | find governing LLPs, follow `@ref`s and `Related:` one hop, distill active constraints | read-only context pack |
 | **`llp-create`** | "capture this decision / write a new LLP" | pick type, draft type-appropriate sections from the conversation | a new `Draft` LLP; prefers extending a covering doc |
 | **`llp-review`** | a doc enters `Review`, or review is requested | run the LLP 0005 loop, summarize concerns, help revise | artifacts under `llp/reviews/`; never fabricates, never touches `Status` |
-| **`llp-adopt`** | "bring LLP to this repo" / "update the LLP skills" | `scaffold`: structure + root doc; `retrofit`: comprehend, draft, migrate, propose `@ref`s; `install`/`update`: pinned skill copies with receipts (LLP 0010 §1) | new files and managed blocks only; generated docs stay `Draft` with provenance tags; receipts, never clobbered forks |
+| **`llp-adopt`** | "bring LLP to this repo or package" / "update the LLP skills" | `scaffold`: structure + root doc; `retrofit`: survey → interview → draft, migrate, propose `@ref`s; `install`/`update`: pinned skill copies with receipts (LLP 0010 §1) | new files and managed blocks only; generated docs stay `Draft` with provenance tags; receipts, never clobbered forks |
 | **`llp-maintain`** | pre-PR · audit · reconcile · retire | detect code/doc drift, validate refs interactively, draft reconciliations | findings and proposals; **never applies** |
 | **`llp-super-refine`** (`review-plus`) | author invokes the dual-family refine loop | orchestrate mutually-blind reviews from two model families per round, revise between rounds, reconcile verdicts | verdict-lined, hash-stamped artifacts; bounded rounds; escalates to the author (LLP 0010 §2) |
 | **`llp-ship`** (`delivery`) | a human hands over tasks to be done end to end | plan lanes, implement, integrate, verify + review the exact integrated SHA, deliver per repo policy | run ledger + report; SHA-bound gates; never force-pushes, never deletes recoverable work (LLP 0010 §3) |
@@ -84,7 +84,7 @@ Before editing a subsystem with documented design, orient first: read its
 governing LLP, and for non-trivial work invoke `llp-orient`.
 
 Skills: orient = context before coding · create = author one LLP · review = LLP 0005 loop
-        · adopt = set up LLP in any repo · maintain = drift / pre-PR / reconcile / retire checks
+        · adopt = set up LLP in any repo or package · maintain = drift / pre-PR / reconcile / retire checks
 <!-- END LLP SKILLS MANAGED BLOCK -->
 ```
 
@@ -95,7 +95,7 @@ Skills: orient = context before coding · create = author one LLP · review = LL
 ## Golden paths
 
 - **Greenfield:** `llp-adopt` (scaffold) → `llp-create` for the first real decisions → code with `@ref`s → `llp-review` where stakes warrant.
-- **Retrofit:** `llp-adopt` (retrofit): survey → draft root + subsystem docs (all `Draft`, provenance-tagged) → human ratifies → `llp-maintain` ongoing.
+- **Retrofit:** `llp-adopt` (retrofit): survey → interview → draft root + at most two subsystem docs (all `Draft`, provenance-tagged) → human ratifies → `llp-maintain` ongoing. Scope is a directory (package or repo); skills walk up to the nearest `llp/` (LLP 0001).
 - **Daily:** `llp-orient` before the change → code + `@ref` → `llp-maintain --intent pre-pr` → `llp-review` if the change is new design.
 
 ## Alternatives considered

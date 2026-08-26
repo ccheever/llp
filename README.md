@@ -85,7 +85,7 @@ cp -r llp/skills/llp-orient ~/.claude/skills/   # or all of skills/
 | [`llp-orient`](./skills/llp-orient/SKILL.md) | `/llp-orient <path-or-task>` | Load the governing LLP context before coding: root LLP, `@ref`s in scope, the LLPs covering the relevant systems. Emits a compact context pack. Read-only. |
 | [`llp-create`](./skills/llp-create/SKILL.md) | `/llp-create <title>` | Author one LLP — next number, filename, metadata scaffold. Prefers extending an existing LLP that already covers the topic. |
 | [`llp-review`](./skills/llp-review/SKILL.md) | `/llp-review <llp>` | Run the LLP 0005 review loop, scaled to stakes. One provenance-tracked artifact per review actually received, under `llp/reviews/`. Never fabricates; never accepts on the author's behalf. |
-| [`llp-adopt`](./skills/llp-adopt/SKILL.md) | `/llp-adopt` | Bring LLP to any repo — `scaffold` (fresh) or `retrofit` (survey, draft provenance-tagged docs, propose a plan), auto-detected — and install/update the skills themselves: `/llp-adopt update` diffs installed copies against their receipt and the newest release; forks are flagged, never clobbered. |
+| [`llp-adopt`](./skills/llp-adopt/SKILL.md) | `/llp-adopt` | Bring LLP to any repo or package — `scaffold` (fresh) or `retrofit` (survey, maintainer interview, provenance-tagged drafts), auto-detected — and install/update the skills themselves: `/llp-adopt update` diffs installed copies against their receipt and the newest release; forks are flagged, never clobbered. |
 | [`llp-maintain`](./skills/llp-maintain/SKILL.md) | `/llp-maintain --intent <mode>` | Keep code and docs co-evolving: drift, ref repairs, provenance, retirements, and the curation pass. Modes: `pre-pr`, `audit`, `reconcile`, `retire-proposal`, `curate`. Proposes; never applies. |
 | [`llp-super-refine`](./skills/llp-super-refine/SKILL.md) | `/llp-super-refine <llp...>` | Author-invoked dual-family refine loop: fresh, mutually-blind reviews from two model families each round, orchestrator revisions, verdict-lined artifacts — until both families say READY or a bounded stop rule escalates. Opt-in via the `review-plus` flag. |
 | [`llp-ship`](./skills/llp-ship/SKILL.md) | `/llp-ship <ref...>` | Tasks done end to end: plan lanes, implement in namespaced worktrees, verify and review the exact integrated commit, deliver per repo policy (direct push default), clean up without destroying recoverable work. Opt-in via the `delivery` flag. |
@@ -99,7 +99,7 @@ A skill is a directory with a `SKILL.md`: YAML frontmatter (`name`, `description
 ## What's in this repo
 
 - **New to LLP?** [LLP 0000](./llp/0000-linked-literate-programming.explainer.md) — the root spec: documents, `@ref` grammar, lifecycle, conventions.
-- **Adopting LLP in a project?** [LLP 0001](./llp/0001-adopting-llp.guide.md) — greenfield and retrofit, one guide.
+- **Adopting LLP in a project?** [LLP 0001](./llp/0001-adopting-llp.guide.md) — greenfield and retrofit, one guide; interview recipe in [LLP 0001.000](./llp/0001.000-retrofit-interview.guide.md).
 - **The thinking behind it:** [LLP 0003](./llp/0003-prior-art.research.md) (prior art) and [LLP 0004](./llp/0004-design-principles.principles.md) (design principles).
 - **Authoring and review process:** [LLP 0005](./llp/0005-rfc-process.guide.md) — stakes-scaled review with fixed honesty rules.
 - **The skills design:** [LLP 0008](./llp/0008-distributed-agent-skills.rfc.md).
@@ -107,7 +107,7 @@ A skill is a directory with a `SKILL.md`: YAML frontmatter (`name`, `description
 - **LLP v2 — sub-LLPs, `current/` and `foundation/`:** [LLP 0011](./llp/0011-llp-v2-overlays-and-sub-llps.rfc.md), and the curation pass in [LLP 0011.000](./llp/0011.000-curation-pass.guide.md).
 - **The skill contracts (foundation):** [LLP 0010.000](./llp/0010.000-skill-installation-and-updates.spec.md) install/update · [LLP 0010.001](./llp/0010.001-super-refine-loop.spec.md) super-refine · [LLP 0010.002](./llp/0010.002-ship.spec.md) ship — rationale in [LLP 0010](./llp/0010-skill-install-super-refine-ship.rfc.md).
 
-All documents live flat under [`llp/`](./llp/); [`llp/foundation/`](./llp/foundation/) links the kernel and [`llp/current/`](./llp/current/) links what's in play ([LLP 0011](./llp/0011-llp-v2-overlays-and-sub-llps.rfc.md)); skills under [`skills/`](./skills/); the checker is [`ref-check`](./ref-check) with its fixture under [`fixtures/`](./fixtures/).
+All documents live flat under [`llp/`](./llp/); [`llp/foundation/`](./llp/foundation/) links the kernel and [`llp/current/`](./llp/current/) links what's in play ([LLP 0011](./llp/0011-llp-v2-overlays-and-sub-llps.rfc.md)); skills under [`skills/`](./skills/); the checker is [`ref-check`](./ref-check) with fixtures under [`fixtures/`](./fixtures/).
 
 ## License
 
