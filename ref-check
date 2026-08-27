@@ -1,311 +1,360 @@
-#!/usr/bin/env python3
-# @ref LLP 0000#6-validation-ref-check — implements the checker specified there
-"""ref-check — deterministic validator for LLP corpora and @ref annotations.
+#!/usr/bin/env node
+// @ref LLP 0000#6-validation-ref-check — implements the checker specified there
+/**
+ * ref-check — deterministic validator for LLP corpora and @ref annotations.
+ *
+ * Usage:
+ *     ref-check [--root DIR] [--verbose]
+ *
+ * Checks (broken = exit 1):
+ *   * @ref targets resolve: LLP numbers, anchors, repo paths. URLs are
+ *     shape-validated only (never fetched); shorthands are listed as
+ *     unchecked unless the project defines a mapping.
+ *   * LLP metadata headers parse; filename type matches **Type:**;
+ *     LLP numbers (including dotted sub-LLP numbers) are unique across the
+ *     tree; every sub-LLP's parent exists.
+ *   * No [inferred] claim survives in an Accepted/Active document.
+ *   * Overlays: every entry in llp/current/ and llp/foundation/ is a relative
+ *     link (symlink, or a regular file whose content is the relative path —
+ *     git's core.symlinks=false form) to an LLP in the corpus; no Tombstoned
+ *     doc is in either; foundation entries are Active (so never Superseded).
+ *   * A malformed LLP-prefixed target (LLP 0011.00, LLP 10000) is an error.
+ *
+ * Judgment calls (stale glosses, drift, orphaned annotations) are
+ * deliberately not gated — that is interactive work for llp-maintain.
+ * Directories containing their own llp/ are separate corpus roots and are
+ * skipped; check them with --root. llp/reviews/, the overlay directories,
+ * and the bodies of Tombstoned documents are exempt from ref validation.
+ */
 
-Usage:
-    ref-check [--root DIR] [--verbose]
+import { lstatSync, readFileSync, readdirSync, readlinkSync, statSync, existsSync } from 'node:fs';
+import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
-Checks (broken = exit 1):
-  * @ref targets resolve: LLP numbers, anchors, repo paths. URLs are
-    shape-validated only (never fetched); shorthands are listed as
-    unchecked unless the project defines a mapping.
-  * LLP metadata headers parse; filename type matches **Type:**;
-    LLP numbers (including dotted sub-LLP numbers) are unique across the
-    tree; every sub-LLP's parent exists.
-  * No [inferred] claim survives in an Accepted/Active document.
-  * Overlays: every entry in llp/current/ and llp/foundation/ is a relative
-    link (symlink, or a regular file whose content is the relative path —
-    git's core.symlinks=false form) to an LLP in the corpus; no Tombstoned
-    doc is in either; foundation entries are Active (so never Superseded).
-  * A malformed LLP-prefixed target (LLP 0011.00, LLP 10000) is an error.
+const SKIP_DIRS = new Set(['.git', '.hg', 'node_modules', '__pycache__', '.venv', 'venv',
+  'dist', 'build', '.next', '.idea', '.vscode']);
+const REQUIRED_FIELDS = ['Type', 'Status', 'Systems', 'Author', 'Date'];
+const GATED_STATUSES = new Set(['accepted', 'active']);
+const OVERLAYS = ['current', 'foundation'];      // symlink overlays under llp/
+const OVERLAY_BANNED = new Set(['tombstoned']);  // may appear in neither overlay
+const FOUNDATION_REQUIRED = new Set(['active']); // foundation is current truth only
+const NON_DOC_DIRS = new Set(['reviews', ...OVERLAYS]);
+const MAX_BYTES = 2_000_000;
 
-Judgment calls (stale glosses, drift, orphaned annotations) are
-deliberately not gated — that is interactive work for llp-maintain.
-Directories containing their own llp/ are separate corpus roots and are
-skipped; check them with --root. llp/reviews/, the overlay directories,
-and the bodies of Tombstoned documents are exempt from ref validation.
-"""
+// Built by concatenation so this file doesn't match its own scan patterns.
+const REF_MARK = '@' + 'ref';
+const CODE_REF_RE = new RegExp(REF_MARK + '\\s+(.+)');
+const MD_REF_RE = new RegExp('<!--\\s*' + REF_MARK + '\\s+([\\s\\S]+?)-->', 'g');
+// @ref LLP 0000#numbering — dotted sub-LLP numbers: 0011, 0011.000, 0011.000.002
+const LLP_NUM = '\\d{1,4}(?:\\.\\d{3})*';
+const LLP_TARGET_RE = new RegExp('^LLP\\s+(' + LLP_NUM + ')(?:#(\\S+))?$');
+const SHORTHAND_RE = /^[A-Z][A-Z0-9_]*(?:#\S+)?$/;
+const URL_RE = /^https?:\/\/[^\s/]+\.[^\s/]+\S*$/;
+const HEADING_RE = /^(#{1,6})\s+(.+?)\s*$/;
+const LLP_FILE_RE = /^(\d{4}(?:\.\d{3})*)-[a-z0-9-]+\.([a-z0-9]+)\.md$/;
+const FIELD_RE = /^\*\*(\w+):\*\*\s*(.+)$/;
+const INFERRED = '[' + 'inferred]';
 
-import argparse
-import os
-import re
-import sys
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Python's repr() for a string: single-quoted unless that would need escaping. */
+function pyRepr(s) {
+  const body = s.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+  if (body.includes("'") && !body.includes('"')) return '"' + body + '"';
+  return "'" + body.replace(/'/g, "\\'") + "'";
+}
+const splitWords = (s) => s.split(/\s+/).filter(Boolean);
+const countOccurrences = (haystack, needle) => haystack.split(needle).length - 1;
 
-SKIP_DIRS = {".git", ".hg", "node_modules", "__pycache__", ".venv", "venv",
-             "dist", "build", ".next", ".idea", ".vscode"}
-REQUIRED_FIELDS = ("Type", "Status", "Systems", "Author", "Date")
-GATED_STATUSES = {"accepted", "active"}
-OVERLAYS = ("current", "foundation")          # symlink overlays under llp/
-OVERLAY_BANNED = {"tombstoned"}                # may appear in neither overlay
-FOUNDATION_REQUIRED = {"active"}               # foundation is current truth only
-NON_DOC_DIRS = {"reviews", *OVERLAYS}
-MAX_BYTES = 2_000_000
+/** Canonical LLP number: first segment zero-padded to 4 (`12.000` -> `0012.000`). */
+function normNum(num) {
+  const i = num.indexOf('.');
+  const head = i === -1 ? num : num.slice(0, i);
+  const tail = i === -1 ? '' : num.slice(i + 1);
+  return head.padStart(4, '0') + (tail ? '.' + tail : '');
+}
 
-# Built by concatenation so this file doesn't match its own scan patterns.
-REF_MARK = "@" + "ref"
-CODE_REF_RE = re.compile(re.escape(REF_MARK) + r"\s+(.+)")
-MD_REF_RE = re.compile(r"<!--\s*" + re.escape(REF_MARK) + r"\s+(.+?)-->", re.DOTALL)
-# @ref LLP 0000#numbering — dotted sub-LLP numbers: 0011, 0011.000, 0011.000.002
-LLP_NUM = r"\d{1,4}(?:\.\d{3})*"
-LLP_TARGET_RE = re.compile(r"^LLP\s+(" + LLP_NUM + r")(?:#(\S+))?$")
-SHORTHAND_RE = re.compile(r"^[A-Z][A-Z0-9_]*(?:#\S+)?$")
-URL_RE = re.compile(r"^https?://[^\s/]+\.[^\s/]+\S*$")
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
-LLP_FILE_RE = re.compile(r"^(\d{4}(?:\.\d{3})*)-[a-z0-9-]+\.([a-z0-9]+)\.md$")
-FIELD_RE = re.compile(r"^\*\*(\w+):\*\*\s*(.+)$")
-INFERRED = "[" + "inferred]"
+/**
+ * GitHub-style heading slug: lowercase; spaces -> hyphens; keep
+ * alphanumerics, hyphens, underscores; drop everything else.
+ * Python's str.isalnum() is Unicode-aware, so \p{L}/\p{N} rather than [a-z0-9].
+ */
+function slugify(text) {
+  const out = [];
+  for (const ch of text.replace(/`/g, '').trim().toLowerCase()) {
+    if (/[\p{L}\p{N}]/u.test(ch) || ch === '-' || ch === '_') out.push(ch);
+    else if (ch === ' ' || ch === '\t') out.push('-');
+  }
+  return out.join('');
+}
 
+/** Text of a file, or null when it is too large or not valid UTF-8. */
+function readText(path) {
+  try {
+    if (statSync(path).size > MAX_BYTES) return null;
+    return new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(path));
+  } catch {
+    return null;
+  }
+}
 
-def norm_num(num):
-    """Canonical LLP number: first segment zero-padded to 4 (`12.000` -> `0012.000`)."""
-    head, _, tail = num.partition(".")
-    return head.zfill(4) + (("." + tail) if tail else "")
+/** Heading texts outside fenced code blocks. */
+function mdHeadings(text) {
+  const headings = [];
+  let fenced = false;
+  for (const line of text.split('\n')) {
+    if (line.replace(/^[ \t\r\n]+/, '').startsWith('```')) { fenced = !fenced; continue; }
+    if (fenced) continue;
+    const m = HEADING_RE.exec(line.replace(/\r$/, ''));
+    if (m) headings.push(m[2]);
+  }
+  return headings;
+}
 
+function anchorResolves(anchor, headings) {
+  anchor = anchor.replace(/^#+/, '');
+  const slugs = new Set(headings.map(slugify));
+  if (slugs.has(anchor.toLowerCase())) return true;
+  if (/^\d+(\.\d+)*$/.test(anchor)) {  // numbered-section form: #3, #3.2
+    const re = new RegExp('^' + escapeRe(anchor) + '([.)\\s]|$)');
+    return headings.some((h) => re.test(h));
+  }
+  return false;
+}
 
-def slugify(text):
-    """GitHub-style heading slug: lowercase; spaces -> hyphens; keep
-    alphanumerics, hyphens, underscores; drop everything else."""
-    text = text.replace("`", "")
-    out = []
-    for ch in text.strip().lower():
-        if ch.isalnum() or ch in "-_":
-            out.append(ch)
-        elif ch in " \t":
-            out.append("-")
-    return "".join(out)
+class Report {
+  constructor() { this.errors = []; this.warnings = []; this.infos = []; }
+  error(msg) { this.errors.push(msg); }
+  info(msg) { this.infos.push(msg); }
+}
 
+/** Split an annotation body into [kind, target, anchor]. */
+function parseTarget(rest) {
+  rest = rest.trim();
+  rest = rest.split(/\s+[—–]|\s+--\s/)[0].trim();   // drop gloss
+  rest = rest.replace(/\s*\[[a-z-]+\]\s*$/, '');    // drop [relation]
+  const m = LLP_TARGET_RE.exec(rest);
+  if (m) return ['llp', m[1], m[2] ?? null];
+  const words = splitWords(rest);
+  const token = words.length ? words[0] : '';
+  if (token === 'LLP') return ['bad-llp', rest, null];  // LLP-shaped but malformed
+  if (token.startsWith('http://') || token.startsWith('https://')) return ['url', token, null];
+  if (SHORTHAND_RE.test(token)) return ['shorthand', token, null];
+  const hash = token.indexOf('#');
+  const path = hash === -1 ? token : token.slice(0, hash);
+  const anchor = hash === -1 ? '' : token.slice(hash + 1);
+  return ['path', path, anchor || null];
+}
 
-def read_text(path):
-    try:
-        if os.path.getsize(path) > MAX_BYTES:
-            return None
-        with open(path, encoding="utf-8") as f:
-            return f.read()
-    except (UnicodeDecodeError, OSError):
-        return None
+function collectRefs(path, text) {
+  const refs = [];  // [lineno, rest]
+  if (path.endsWith('.md')) {
+    MD_REF_RE.lastIndex = 0;
+    let m;
+    while ((m = MD_REF_RE.exec(text)) !== null) {
+      const lineno = countOccurrences(text.slice(0, m.index), '\n') + 1;
+      refs.push([lineno, m[1]]);
+    }
+  } else {
+    text.split('\n').forEach((line, i) => {
+      const m = CODE_REF_RE.exec(line);
+      if (m) refs.push([i + 1, m[1]]);
+    });
+  }
+  return refs;
+}
 
+/** os.walk, top-down, with the caller allowed to prune `dirnames` in place. */
+function* walk(root) {
+  const stack = [root];
+  while (stack.length) {
+    const dirpath = stack.pop();
+    let entries;
+    try { entries = readdirSync(dirpath, { withFileTypes: true }); } catch { continue; }
+    const dirnames = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+    const filenames = entries.filter((e) => !e.isDirectory()).map((e) => e.name).sort();
+    const box = { dirnames };
+    yield [dirpath, box, filenames];
+    for (const d of [...box.dirnames].reverse()) stack.push(join(dirpath, d));
+  }
+}
 
-def md_headings(text):
-    """Heading texts outside fenced code blocks."""
-    headings, fenced = [], False
-    for line in text.splitlines():
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            continue
-        if fenced:
-            continue
-        m = HEADING_RE.match(line)
-        if m:
-            headings.append(m.group(2))
-    return headings
+function check(root) {
+  const rep = new Report();
+  const llpDir = join(root, 'llp');
 
+  // --- corpus: collect LLP docs, check metadata ---
+  const docs = new Map();      // number -> relpath
+  const headings = new Map();  // number -> [heading, ...]
+  const statuses = new Map();  // number -> lowercase status word
 
-def anchor_resolves(anchor, headings):
-    anchor = anchor.lstrip("#")
-    slugs = {slugify(h) for h in headings}
-    if anchor.lower() in slugs:
-        return True
-    if re.fullmatch(r"\d+(\.\d+)*", anchor):  # numbered-section form: #3, #3.2
-        return any(re.match(rf"^{re.escape(anchor)}([.)\s]|$)", h) for h in headings)
-    return False
+  if (existsSync(llpDir) && statSync(llpDir).isDirectory()) {
+    for (const [dirpath, box, filenames] of walk(llpDir)) {
+      box.dirnames = box.dirnames.filter((d) => !SKIP_DIRS.has(d) && !NON_DOC_DIRS.has(d));
+      for (const name of filenames) {
+        const m = LLP_FILE_RE.exec(name);
+        if (!m) continue;
+        const num = m[1], ftype = m[2];
+        const rel = relative(root, join(dirpath, name));
+        const text = readText(join(dirpath, name));
+        if (text === null) continue;
+        if (docs.has(num)) {
+          rep.error(`${rel}: duplicate LLP number ${num} (also ${docs.get(num)})`);
+        } else {
+          docs.set(num, rel);
+          headings.set(num, mdHeadings(text));
+        }
+        const fields = new Map();
+        for (const line of text.split('\n').slice(1, 40)) {
+          const fm = FIELD_RE.exec(line.trim());
+          if (fm && !fields.has(fm[1])) fields.set(fm[1], fm[2].trim());
+        }
+        for (const req of REQUIRED_FIELDS) {
+          if (!fields.has(req)) rep.error(`${rel}: missing required metadata field **${req}:**`);
+        }
+        const typeField = fields.get('Type') ?? '';
+        const docType = typeField ? (splitWords(typeField)[0] ?? '').toLowerCase() : '';
+        if (docType && docType !== ftype) {
+          rep.error(`${rel}: filename type '.${ftype}.md' != **Type:** ${fields.get('Type')}`);
+        }
+        const statusField = fields.get('Status') ?? '';
+        const status = statusField ? (splitWords(statusField)[0] ?? '').toLowerCase() : '';
+        statuses.set(num, status);
+        if (GATED_STATUSES.has(status)) {
+          const bare = countOccurrences(text, INFERRED) - countOccurrences(text, '`' + INFERRED);
+          if (bare > 0) {
+            rep.error(`${rel}: ${INFERRED} claim in ${fields.get('Status')} document ` +
+              `(ratify to [confirmed] or remove before promotion)`);
+          }
+        }
+      }
+    }
+  }
 
+  // @ref LLP 0000#numbering — a sub-LLP's parent must exist
+  for (const [num, rel] of [...docs.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))) {
+    if (num.includes('.')) {
+      const parent = num.slice(0, num.lastIndexOf('.'));
+      if (!docs.has(parent)) rep.error(`${rel}: sub-LLP ${num} has no parent LLP ${parent}`);
+    }
+  }
 
-class Report:
-    def __init__(self):
-        self.errors, self.warnings, self.infos = [], [], []
+  // @ref LLP 0000#current-and-foundation — overlays are symlinks into llp/
+  const docPaths = new Map();
+  for (const [n, r] of docs) docPaths.set(resolve(root, r), n);
+  for (const overlay of OVERLAYS) {
+    const odir = join(llpDir, overlay);
+    if (!existsSync(odir) || !statSync(odir).isDirectory()) continue;
+    for (const name of readdirSync(odir).sort()) {
+      if (name.startsWith('.')) continue;
+      const entry = join(odir, name);
+      const rel = relative(root, entry);
+      let link;
+      const st = lstatSync(entry);
+      if (st.isSymbolicLink()) {
+        link = readlinkSync(entry);
+      } else if (st.isFile() && st.size < 1024) {
+        link = (readText(entry) ?? '').trim();  // path-content file (core.symlinks=false)
+      } else {
+        rep.error(`${rel}: overlay entry is not a link (overlays hold links, not documents)`);
+        continue;
+      }
+      if (!link || isAbsolute(link) || link.includes('\n')) {
+        rep.error(`${rel}: overlay entry must be a relative link to a document under llp/ (got ${pyRepr(link)})`);
+        continue;
+      }
+      const target = resolve(odir, link);
+      const num = docPaths.get(target);
+      if (num === undefined) {
+        rep.error(`${rel}: dangling overlay link -> ${link} (not an LLP under llp/)`);
+        continue;
+      }
+      const s = statuses.get(num) ?? '';
+      if (OVERLAY_BANNED.has(s)) {
+        rep.error(`${rel}: ${s.charAt(0).toUpperCase() + s.slice(1)} LLP ${num} may not appear in llp/${overlay}/`);
+      } else if (overlay === 'foundation' && !FOUNDATION_REQUIRED.has(s)) {
+        rep.error(`${rel}: LLP ${num} is ${s || 'unknown'}; foundation entries must be Active`);
+      }
+    }
+  }
 
-    def error(self, msg):
-        self.errors.append(msg)
+  // --- refs: scan the tree ---
+  let nFiles = 0, nRefs = 0;
+  const exempt = [...NON_DOC_DIRS].map((d) => join('llp', d));
+  const tombstoned = new Set();
+  for (const [n, r] of docs) if (statuses.get(n) === 'tombstoned') tombstoned.add(join(root, r));
 
-    def info(self, msg):
-        self.infos.append(msg)
+  for (const [dirpath, box, filenames] of walk(root)) {
+    box.dirnames = box.dirnames.filter((d) => !SKIP_DIRS.has(d));
+    if (dirpath !== root && box.dirnames.includes('llp')) {
+      // a nested llp/ marks a separate corpus root (fixture, vendored
+      // project): its refs resolve against its own tree, not this one
+      box.dirnames = [];
+      continue;
+    }
+    for (const name of filenames) {
+      const full = join(dirpath, name);
+      const rel = relative(root, full);
+      if (exempt.some((e) => rel.startsWith(e)) || basename(rel) === 'ref-check' || tombstoned.has(full)) continue;
+      const text = readText(full);
+      if (text === null) continue;
+      nFiles += 1;
+      for (const [lineno, rest] of collectRefs(rel, text)) {
+        nRefs += 1;
+        const [kind, target, anchor] = parseTarget(rest);
+        const where = `${rel}:${lineno}`;
+        if (kind === 'llp') {
+          const num = normNum(target);
+          if (!docs.has(num)) rep.error(`${where}: broken ref: LLP ${num} not found under llp/`);
+          else if (anchor && !anchorResolves(anchor, headings.get(num))) {
+            rep.error(`${where}: broken ref: no anchor #${anchor} in ${docs.get(num)}`);
+          }
+        } else if (kind === 'bad-llp') {
+          rep.error(`${where}: malformed LLP target: '${target}' (expected LLP NNNN[.NNN...][#anchor])`);
+        } else if (kind === 'url') {
+          if (!URL_RE.test(target)) rep.error(`${where}: malformed URL target: ${target}`);
+        } else if (kind === 'shorthand') {
+          rep.info(`${where}: unchecked shorthand: ${target} (no mapping defined)`);
+        } else {  // path
+          const tpath = join(root, target);
+          if (!existsSync(tpath)) {
+            rep.error(`${where}: broken ref: path not found: ${target}`);
+          } else if (anchor) {
+            if (target.endsWith('.md')) {
+              const ttext = readText(tpath) ?? '';
+              if (!anchorResolves(anchor, mdHeadings(ttext))) {
+                rep.error(`${where}: broken ref: no anchor #${anchor} in ${target}`);
+              }
+            } else {
+              rep.info(`${where}: anchor #${anchor} unchecked (non-markdown target)`);
+            }
+          }
+        }
+      }
+    }
+  }
+  return [rep, nFiles, nRefs, docs.size];
+}
 
+function main(argv) {
+  let root = '.', verbose = false;
+  for (let i = 0; i < argv.length; i += 1) {
+    if (argv[i] === '--root') { root = argv[++i]; }
+    else if (argv[i].startsWith('--root=')) { root = argv[i].slice(7); }
+    else if (argv[i] === '--verbose') { verbose = true; }
+    else if (argv[i] === '-h' || argv[i] === '--help') {
+      console.log('usage: ref-check [--root DIR] [--verbose]');
+      return 0;
+    } else {
+      console.error(`ref-check: unrecognized argument: ${argv[i]}`);
+      return 2;
+    }
+  }
+  const [rep, nFiles, nRefs, nDocs] = check(resolve(root));
+  for (const e of rep.errors) console.log(`ERROR ${e}`);
+  if (verbose) for (const i of rep.infos) console.log(`INFO  ${i}`);
+  const status = rep.errors.length ? 'FAIL' : 'ok';
+  console.log(`ref-check: ${status} — ${nDocs} LLP docs, ${nRefs} refs in ${nFiles} files, ` +
+    `${rep.errors.length} errors, ${rep.infos.length} unchecked`);
+  return rep.errors.length ? 1 : 0;
+}
 
-def parse_target(rest):
-    """Split an annotation body into (kind, target, anchor)."""
-    rest = rest.strip()
-    rest = re.split(r"\s+[—–]|\s+--\s", rest)[0].strip()  # drop gloss
-    rest = re.sub(r"\s*\[[a-z-]+\]\s*$", "", rest)        # drop [relation]
-    m = LLP_TARGET_RE.match(rest)
-    if m:
-        return "llp", m.group(1), m.group(2)
-    token = rest.split()[0] if rest.split() else ""
-    if token == "LLP":  # LLP-shaped but malformed: never degrade to shorthand
-        return "bad-llp", rest, None
-    if token.startswith(("http://", "https://")):
-        return "url", token, None
-    if SHORTHAND_RE.match(token):
-        return "shorthand", token, None
-    path, _, anchor = token.partition("#")
-    return "path", path, anchor or None
-
-
-def collect_refs(path, text):
-    refs = []  # (lineno, rest)
-    if path.endswith(".md"):
-        for m in MD_REF_RE.finditer(text):
-            lineno = text.count("\n", 0, m.start()) + 1
-            refs.append((lineno, m.group(1)))
-    else:
-        for i, line in enumerate(text.splitlines(), 1):
-            m = CODE_REF_RE.search(line)
-            if m:
-                refs.append((i, m.group(1)))
-    return refs
-
-
-def check(root):
-    rep = Report()
-    llp_dir = os.path.join(root, "llp")
-
-    # --- corpus: collect LLP docs, check metadata ---
-    docs = {}  # number -> relpath
-    headings = {}  # number -> [heading, ...]
-    statuses = {}  # number -> lowercase status word
-    if os.path.isdir(llp_dir):
-        for dirpath, dirnames, filenames in os.walk(llp_dir):
-            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and d not in NON_DOC_DIRS]
-            for name in sorted(filenames):
-                m = LLP_FILE_RE.match(name)
-                if not m:
-                    continue
-                num, ftype = m.group(1), m.group(2)
-                rel = os.path.relpath(os.path.join(dirpath, name), root)
-                text = read_text(os.path.join(dirpath, name))
-                if text is None:
-                    continue
-                if num in docs:
-                    rep.error(f"{rel}: duplicate LLP number {num} (also {docs[num]})")
-                else:
-                    docs[num] = rel
-                    headings[num] = md_headings(text)
-                fields = {}
-                for line in text.splitlines()[1:40]:
-                    fm = FIELD_RE.match(line.strip())
-                    if fm:
-                        fields.setdefault(fm.group(1), fm.group(2).strip())
-                for req in REQUIRED_FIELDS:
-                    if req not in fields:
-                        rep.error(f"{rel}: missing required metadata field **{req}:**")
-                doc_type = fields.get("Type", "").split()[0].lower() if fields.get("Type") else ""
-                if doc_type and doc_type != ftype:
-                    rep.error(f"{rel}: filename type '.{ftype}.md' != **Type:** {fields['Type']}")
-                status = fields.get("Status", "").split()[0].lower() if fields.get("Status") else ""
-                statuses[num] = status
-                if status in GATED_STATUSES:
-                    bare = text.count(INFERRED) - text.count("`" + INFERRED)
-                    if bare > 0:
-                        rep.error(f"{rel}: {INFERRED} claim in {fields.get('Status')} document "
-                                  f"(ratify to [confirmed] or remove before promotion)")
-
-    # @ref LLP 0000#numbering — a sub-LLP's parent must exist
-    for num, rel in sorted(docs.items()):
-        if "." in num:
-            parent = num.rsplit(".", 1)[0]
-            if parent not in docs:
-                rep.error(f"{rel}: sub-LLP {num} has no parent LLP {parent}")
-
-    # @ref LLP 0000#current-and-foundation — overlays are symlinks into llp/
-    doc_paths = {os.path.abspath(os.path.join(root, r)): n for n, r in docs.items()}
-    for overlay in OVERLAYS:
-        odir = os.path.join(llp_dir, overlay)
-        if not os.path.isdir(odir):
-            continue
-        for name in sorted(os.listdir(odir)):
-            if name.startswith("."):
-                continue
-            entry = os.path.join(odir, name)
-            rel = os.path.relpath(entry, root)
-            if os.path.islink(entry):
-                link = os.readlink(entry)
-            elif os.path.isfile(entry) and os.path.getsize(entry) < 1024:
-                link = (read_text(entry) or "").strip()  # path-content file (core.symlinks=false)
-            else:
-                rep.error(f"{rel}: overlay entry is not a link (overlays hold links, not documents)")
-                continue
-            if not link or os.path.isabs(link) or "\n" in link:
-                rep.error(f"{rel}: overlay entry must be a relative link to a document under llp/ (got {link!r})")
-                continue
-            target = os.path.abspath(os.path.join(odir, link))
-            num = doc_paths.get(target)
-            if num is None:
-                rep.error(f"{rel}: dangling overlay link -> {link} (not an LLP under llp/)")
-                continue
-            st = statuses.get(num, "")
-            if st in OVERLAY_BANNED:
-                rep.error(f"{rel}: {st.capitalize()} LLP {num} may not appear in llp/{overlay}/")
-            elif overlay == "foundation" and st not in FOUNDATION_REQUIRED:
-                rep.error(f"{rel}: LLP {num} is {st or 'unknown'}; foundation entries must be Active")
-
-    # --- refs: scan the tree ---
-    n_files = n_refs = 0
-    exempt = tuple(os.path.join("llp", d) for d in NON_DOC_DIRS)
-    tombstoned = {os.path.join(root, r) for n, r in docs.items() if statuses.get(n) == "tombstoned"}
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
-        if dirpath != root and "llp" in dirnames:
-            # a nested llp/ marks a separate corpus root (fixture, vendored
-            # project): its refs resolve against its own tree, not this one
-            dirnames[:] = []
-            continue
-        for name in sorted(filenames):
-            full = os.path.join(dirpath, name)
-            rel = os.path.relpath(full, root)
-            if rel.startswith(exempt) or os.path.basename(rel) == "ref-check" or full in tombstoned:
-                continue
-            text = read_text(full)
-            if text is None:
-                continue
-            n_files += 1
-            for lineno, rest in collect_refs(rel, text):
-                n_refs += 1
-                kind, target, anchor = parse_target(rest)
-                where = f"{rel}:{lineno}"
-                if kind == "llp":
-                    num = norm_num(target)
-                    if num not in docs:
-                        rep.error(f"{where}: broken ref: LLP {num} not found under llp/")
-                    elif anchor and not anchor_resolves(anchor, headings[num]):
-                        rep.error(f"{where}: broken ref: no anchor #{anchor} in {docs[num]}")
-                elif kind == "bad-llp":
-                    rep.error(f"{where}: malformed LLP target: '{target}' (expected LLP NNNN[.NNN...][#anchor])")
-                elif kind == "url":
-                    if not URL_RE.match(target):
-                        rep.error(f"{where}: malformed URL target: {target}")
-                elif kind == "shorthand":
-                    rep.info(f"{where}: unchecked shorthand: {target} (no mapping defined)")
-                else:  # path
-                    tpath = os.path.join(root, target)
-                    if not os.path.exists(tpath):
-                        rep.error(f"{where}: broken ref: path not found: {target}")
-                    elif anchor:
-                        if target.endswith(".md"):
-                            ttext = read_text(tpath) or ""
-                            if not anchor_resolves(anchor, md_headings(ttext)):
-                                rep.error(f"{where}: broken ref: no anchor #{anchor} in {target}")
-                        else:
-                            rep.info(f"{where}: anchor #{anchor} unchecked (non-markdown target)")
-    return rep, n_files, n_refs, len(docs)
-
-
-def main():
-    ap = argparse.ArgumentParser(prog="ref-check", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--root", default=".", help="project root to check (default: .)")
-    ap.add_argument("--verbose", action="store_true", help="also print informational notes")
-    args = ap.parse_args()
-
-    rep, n_files, n_refs, n_docs = check(os.path.abspath(args.root))
-    for e in rep.errors:
-        print(f"ERROR {e}")
-    if args.verbose:
-        for i in rep.infos:
-            print(f"INFO  {i}")
-    status = "FAIL" if rep.errors else "ok"
-    print(f"ref-check: {status} — {n_docs} LLP docs, {n_refs} refs in {n_files} files, "
-          f"{len(rep.errors)} errors, {len(rep.infos)} unchecked")
-    sys.exit(1 if rep.errors else 0)
-
-
-if __name__ == "__main__":
-    main()
+process.exit(main(process.argv.slice(2)));
