@@ -29,6 +29,7 @@ and the bodies of Tombstoned documents are exempt from ref validation.
 import argparse
 import os
 import re
+import subprocess
 import sys
 
 SKIP_DIRS = {".git", ".hg", "node_modules", "__pycache__", ".venv", "venv",
@@ -154,6 +155,29 @@ def collect_refs(path, text):
     return refs
 
 
+def git_tracked_and_unignored_files(root):
+    """Return tracked and non-ignored untracked files, or None outside Git."""
+    try:
+        result = subprocess.run(
+            [
+                "git", "ls-files",
+                "--cached", "--others", "--exclude-standard", "-z"
+            ],
+            cwd=root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    return [
+        os.path.join(root, os.fsdecode(path))
+        for path in result.stdout.split(b"\0")
+        if path
+    ]
+
+
 def check(root):
     rep = Report()
     llp_dir = os.path.join(root, "llp")
@@ -241,50 +265,80 @@ def check(root):
     n_files = n_refs = 0
     exempt = tuple(os.path.join("llp", d) for d in NON_DOC_DIRS)
     tombstoned = {os.path.join(root, r) for n, r in docs.items() if statuses.get(n) == "tombstoned"}
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
-        if dirpath != root and "llp" in dirnames:
-            # a nested llp/ marks a separate corpus root (fixture, vendored
-            # project): its refs resolve against its own tree, not this one
-            dirnames[:] = []
-            continue
-        for name in sorted(filenames):
-            full = os.path.join(dirpath, name)
+
+    git_files = git_tracked_and_unignored_files(root)
+
+    if git_files is None:
+        # Outside Git: preserve the original filesystem scan.
+        scan_files = []
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+            if dirpath != root and "llp" in dirnames:
+                # a nested llp/ marks a separate corpus root (fixture, vendored
+                # project): its refs resolve against its own tree, not this one
+                dirnames[:] = []
+                continue
+            for name in sorted(filenames):
+                scan_files.append(os.path.join(dirpath, name))
+    else:
+        # Inside Git: scan tracked and non-ignored untracked files.
+        scan_files = []
+        for full in git_files:
             rel = os.path.relpath(full, root)
-            if rel.startswith(exempt) or os.path.basename(rel) == "ref-check" or full in tombstoned:
+            if any(part in SKIP_DIRS for part in rel.split(os.sep)):
                 continue
-            text = read_text(full)
-            if text is None:
-                continue
-            n_files += 1
-            for lineno, rest in collect_refs(rel, text):
-                n_refs += 1
-                kind, target, anchor = parse_target(rest)
-                where = f"{rel}:{lineno}"
-                if kind == "llp":
-                    num = norm_num(target)
-                    if num not in docs:
-                        rep.error(f"{where}: broken ref: LLP {num} not found under llp/")
-                    elif anchor and not anchor_resolves(anchor, headings[num]):
-                        rep.error(f"{where}: broken ref: no anchor #{anchor} in {docs[num]}")
-                elif kind == "bad-llp":
-                    rep.error(f"{where}: malformed LLP target: '{target}' (expected LLP NNNN[.NNN...][#anchor])")
-                elif kind == "url":
-                    if not URL_RE.match(target):
-                        rep.error(f"{where}: malformed URL target: {target}")
-                elif kind == "shorthand":
-                    rep.info(f"{where}: unchecked shorthand: {target} (no mapping defined)")
-                else:  # path
-                    tpath = os.path.join(root, target)
-                    if not os.path.exists(tpath):
-                        rep.error(f"{where}: broken ref: path not found: {target}")
-                    elif anchor:
-                        if target.endswith(".md"):
-                            ttext = read_text(tpath) or ""
-                            if not anchor_resolves(anchor, md_headings(ttext)):
-                                rep.error(f"{where}: broken ref: no anchor #{anchor} in {target}")
-                        else:
-                            rep.info(f"{where}: anchor #{anchor} unchecked (non-markdown target)")
+
+            # Preserve the nested-corpus exclusion.
+            parent = os.path.dirname(full)
+            nested_corpus = False
+            while parent != root:
+                if os.path.isdir(os.path.join(parent, "llp")):
+                    nested_corpus = True
+                    break
+                next_parent = os.path.dirname(parent)
+                if next_parent == parent:
+                    break
+                parent = next_parent
+
+            if not nested_corpus:
+                scan_files.append(full)
+
+    for full in sorted(scan_files):
+        rel = os.path.relpath(full, root)
+        if rel.startswith(exempt) or os.path.basename(rel) == "ref-check" or full in tombstoned:
+            continue
+        text = read_text(full)
+        if text is None:
+            continue
+        n_files += 1
+        for lineno, rest in collect_refs(rel, text):
+            n_refs += 1
+            kind, target, anchor = parse_target(rest)
+            where = f"{rel}:{lineno}"
+            if kind == "llp":
+                num = norm_num(target)
+                if num not in docs:
+                    rep.error(f"{where}: broken ref: LLP {num} not found under llp/")
+                elif anchor and not anchor_resolves(anchor, headings[num]):
+                    rep.error(f"{where}: broken ref: no anchor #{anchor} in {docs[num]}")
+            elif kind == "bad-llp":
+                rep.error(f"{where}: malformed LLP target: '{target}' (expected LLP NNNN[.NNN...][#anchor])")
+            elif kind == "url":
+                if not URL_RE.match(target):
+                    rep.error(f"{where}: malformed URL target: {target}")
+            elif kind == "shorthand":
+                rep.info(f"{where}: unchecked shorthand: {target} (no mapping defined)")
+            else:  # path
+                tpath = os.path.join(root, target)
+                if not os.path.exists(tpath):
+                    rep.error(f"{where}: broken ref: path not found: {target}")
+                elif anchor:
+                    if target.endswith(".md"):
+                        ttext = read_text(tpath) or ""
+                        if not anchor_resolves(anchor, md_headings(ttext)):
+                            rep.error(f"{where}: broken ref: no anchor #{anchor} in {target}")
+                    else:
+                        rep.info(f"{where}: anchor #{anchor} unchecked (non-markdown target)")
     return rep, n_files, n_refs, len(docs)
 
 
